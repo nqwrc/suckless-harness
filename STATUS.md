@@ -16,4 +16,8 @@ write C in the suckless.org style, with a test suite proving the examples compil
 and build under `make`.
 
 ## backlog
-- nothing tracked here; see the repo's open issues
+- the previously pushed STATUS.md revision carries a stale note about a local
+  directory layout; removing it from published history would need a history
+  rewrite, which is the owner's call and is not taken here
+- repository metadata: no topics set, license file is MIT/X Consortium (GitHub
+  reports "other"), and no always-open status issue exists yet
