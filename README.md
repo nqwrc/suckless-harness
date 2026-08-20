@@ -85,10 +85,14 @@ Needs `awk` and a C99 compiler. It extracts every C block from `SKILL.md` into
 `test/build/`, compiles them, runs the worked example, runs `arg.h` through nine
 invocation forms, compares the three `arg.h` variants for operand loss and for
 out-of-bounds reads, and syntax-checks `drw.c` against stub X11 headers.
-AddressSanitizer checks are skipped if the compiler lacks them. If `make` is on
-`PATH`, it also extracts § 4.1's `Makefile` and `config.mk`, builds the worked
-example through them (`SRC = tool.c util.c`), and dry-runs `install`/`dist`;
-skipped with a message if `make` is absent.
+AddressSanitizer checks are skipped if the compiler lacks them. Under GNU
+`make` it also extracts § 4.1's `Makefile` and `config.mk` and runs them for
+real: `all` builds the worked example through them (`SRC = tool.c util.c`) and
+the binary is run, `install` and `uninstall` are executed against a scratch
+`DESTDIR`, and `dist` must produce a tarball containing every `SRC` and `HDR`
+file. § 4.1 is a template, so the harness supplies the `LICENSE`, `README` and
+`tool.1` its `dist` recipe expects. The section is skipped with a message when
+`make` is absent or is not GNU make.
 
 `drw.c` is compiled, not linked or run — that needs real Xlib and an X server.
 
@@ -109,9 +113,11 @@ what the skill ships.
 
 ## Status
 
-Version 1.2. The code blocks are verified as described above; the `Makefile`
-and `config.mk` are built and run through `make` when it is present on
-`PATH`, and skipped with a message otherwise.
+Version 1.2. The code blocks are verified as described above. The § 4.1
+`Makefile` and `config.mk` were executed — built, run, installed, uninstalled
+and packaged — with GNU Make 4.4.1 and clang 22.1.8 on Windows 11; the section
+skips itself with a message when `make` is absent or is not GNU make. BSD make
+is not tested, on this or any other machine.
 
 Corrections welcome, particularly on the `arg.h` reasoning.
 
