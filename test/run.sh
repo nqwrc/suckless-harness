@@ -6,6 +6,8 @@
 #
 # Requires: awk, a C99 compiler (cc, or set CC). AddressSanitizer checks are
 # skipped automatically if the compiler does not support -fsanitize=address.
+# The section 4.1 Makefile is built, installed and packaged for real, but only
+# under GNU make; see the note above that section.
 
 set -e
 
@@ -28,7 +30,7 @@ bad()  { printf 'FAIL: %s\n' "$1"; fail=1; }
 note "extracting sources from SKILL.md"
 (cd build && awk -f ../extract.awk ../../SKILL.md)
 
-for f in arg.h util.h util.c lc.c drw.h drw.c; do
+for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h; do
 	[ -f "build/$f" ] || bad "SKILL.md produced no $f"
 done
 
@@ -121,7 +123,17 @@ $CC $WARN -I x11stub -I build -c build/drw.c -o build/drw.o
 printf '  ok (stub X11/Xft headers; not linked, needs a real X server)\n'
 
 note "Makefile + config.mk (SKILL.md section 4.1)"
-if command -v make >/dev/null 2>&1; then
+# Only GNU make is exercised. `include config.mk` is also BSD make syntax, but
+# no bmake is available here to prove it, so a non-GNU make is skipped rather
+# than guessed at. Every target is run for real: all, install, uninstall, dist
+# (which runs clean first). A dry run would prove nothing -- make -n never
+# reads a recipe body closely enough to fail on it.
+ok=0
+if ! command -v make >/dev/null 2>&1; then
+	printf '  skipped (no make on PATH)\n'
+elif ! make --version 2>/dev/null | grep -q GNU; then
+	printf '  skipped (make is not GNU make; BSD make is untested here)\n'
+else
 	mkdir -p build/maketest
 	(cd build/maketest && awk '
 		/^```makefile$/ { inblk = 1; n = 0; next }
@@ -141,27 +153,80 @@ if command -v make >/dev/null 2>&1; then
 		}
 		inblk { buf[++n] = $0 }
 	' ../../../SKILL.md)
+	ok=1
+	# a missing marker must FAIL cleanly, not abort the script under set -e
 	for f in config.mk Makefile; do
-		[ -f "build/maketest/$f" ] || bad "SKILL.md produced no $f"
+		[ -f "build/maketest/$f" ] || { bad "SKILL.md produced no $f"; ok=0; }
 	done
+	for f in util.c util.h arg.h config.def.h lc.c; do
+		[ -f "build/$f" ] || { bad "make section needs build/$f"; ok=0; }
+	done
+fi
+if [ "$ok" = 1 ]; then
 	# tool.c/SRC are the Makefile's generic placeholder name; the worked
 	# example (lc.c + util.c + arg.h) is real code that fits the same slot.
 	cp build/util.c build/util.h build/arg.h build/config.def.h build/maketest/
 	cp build/lc.c build/maketest/tool.c
-	if (cd build/maketest && make CC="$CC" >../make.log 2>&1) && [ -x build/maketest/tool ]; then
+	# Section 4.1 is a template, not a project: dist packages LICENSE,
+	# README and tool.1, which no code block defines. The harness supplies
+	# them so the recipe has real files to copy, nothing more.
+	cp ../LICENSE build/maketest/LICENSE
+	printf 'scaffold, so the dist target has a README to package\n' \
+		> build/maketest/README
+	printf '.TH TOOL 1 tool-VERSION\n.SH NAME\ntool \\- scaffold\n' \
+		> build/maketest/tool.1
+	mk() { (cd build/maketest && make CC="$CC" "$@"); }
+	ver=$(sed -n 's/^VERSION = //p' build/maketest/config.mk)
+	dest=$here/build/destdir
+	man=$dest/usr/local/share/man/man1/tool.1
+
+	if mk >build/make.log 2>&1 && [ -x build/maketest/tool ]; then
 		out=$(printf 'a\nb\nc\n' | ./build/maketest/tool)
 		[ "$out" = "3 <stdin>" ] || bad "make-built tool: got '$out', want '3 <stdin>'"
-		printf '  built and ran tool via make (SRC = tool.c util.c) -> %s\n' "$out"
+		printf '  make           -> built tool (SRC = tool.c util.c), ran it: %s\n' "$out"
 	else
 		bad "make failed to build tool from the shipped Makefile/config.mk"
 		sed 's/^/  /' build/make.log
+		ok=0
 	fi
-	(cd build/maketest && make -n install >/dev/null 2>&1) || \
-		bad "make -n install: recipe does not expand cleanly"
-	(cd build/maketest && make -n dist    >/dev/null 2>&1) || \
-		bad "make -n dist: recipe does not expand cleanly"
-else
-	printf '  skipped (no make)\n'
+
+	if [ "$ok" = 1 ] && mk install DESTDIR="$dest" >build/make-install.log 2>&1; then
+		[ -f "$dest/usr/local/bin/tool" ] || bad "make install: no bin/tool under DESTDIR"
+		[ -f "$man" ] || bad "make install: no man1/tool.1 under DESTDIR"
+		# the install recipe seds VERSION into the page as it copies it
+		grep -q "tool-$ver" "$man" || bad "make install: VERSION not substituted in tool.1"
+		printf '  make install   -> DESTDIR/usr/local/{bin/tool,share/man/man1/tool.1}\n'
+		if mk uninstall DESTDIR="$dest" >>build/make-install.log 2>&1; then
+			[ -f "$dest/usr/local/bin/tool" ] && bad "make uninstall left bin/tool"
+			[ -f "$man" ] && bad "make uninstall left man1/tool.1"
+			printf '  make uninstall -> both removed\n'
+		else
+			bad "make uninstall failed"
+			sed 's/^/  /' build/make-install.log
+		fi
+	elif [ "$ok" = 1 ]; then
+		bad "make install failed"
+		sed 's/^/  /' build/make-install.log
+	fi
+
+	# dist runs clean first, so it goes last; the tool binary is gone after.
+	if [ "$ok" = 1 ] && mk dist >build/make-dist.log 2>&1 && \
+	   [ -f "build/maketest/tool-$ver.tar.gz" ]; then
+		tar -tzf "build/maketest/tool-$ver.tar.gz" >build/dist.list 2>&1 || \
+			bad "make dist: tool-$ver.tar.gz is not readable"
+		printf '  make dist      -> tool-%s.tar.gz, %s members\n' \
+			"$ver" "$(wc -l <build/dist.list | tr -d ' ')"
+		# section 4.1 warns that a tarball missing a header fails only on
+		# the downloader's machine, so check HDR really landed in it.
+		for f in LICENSE Makefile README config.def.h config.mk tool.1 \
+			 tool.c util.c arg.h util.h; do
+			grep -qx "tool-$ver/$f" build/dist.list || \
+				bad "make dist: tool-$ver.tar.gz lacks $f"
+		done
+	elif [ "$ok" = 1 ]; then
+		bad "make dist failed to produce tool-$ver.tar.gz"
+		sed 's/^/  /' build/make-dist.log
+	fi
 fi
 
 echo
