@@ -19,5 +19,8 @@ and build under `make`.
 - the previously pushed STATUS.md revision carries a stale note about a local
   directory layout; removing it from published history would need a history
   rewrite, which is the owner's call and is not taken here
-- repository metadata: no topics set, license file is MIT/X Consortium (GitHub
-  reports "other"), and no always-open status issue exists yet
+- repository metadata: verified closed as of 2026-08-20 except the license
+  label - six topics are set and the always-open status issue exists. GitHub
+  reports the license as "other"; LICENSE deviates from the canonical MIT
+  template in two ways (MIT/X Consortium header and a trailing note about
+  test/upstream/arg.h), so a relabel would need both addressed - owner's call
