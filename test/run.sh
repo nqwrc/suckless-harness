@@ -92,7 +92,8 @@ done
 
 note "AddressSanitizer: out-of-bounds read on a heap argv"
 if printf 'int main(void){return 0;}\n' | \
-   $CC -fsanitize=address -x c -o build/asanprobe - 2>/dev/null; then
+   $CC -fsanitize=address -x c -o build/asanprobe - 2>/dev/null && \
+   ./build/asanprobe >/dev/null 2>&1; then
 	for v in shipped upstream broken; do
 		case $v in
 		shipped)  inc="build" ;;
@@ -112,7 +113,7 @@ if printf 'int main(void){return 0;}\n' | \
 		fi
 	done
 else
-	printf '  skipped (no -fsanitize=address)\n'
+	printf '  skipped (no working -fsanitize=address)\n'
 fi
 
 note "drw.c syntax check (SKILL.md section 3.6)"
