@@ -191,15 +191,18 @@ if [ "$ok" = 1 ]; then
 	fi
 
 	if [ "$ok" = 1 ] && mk install DESTDIR="$dest" >build/make-install.log 2>&1; then
+		# print the action, then assert -- so a FAIL below is never
+		# contradicted by a success line printed after it
+		printf '  make install   -> ran with DESTDIR=test/build/destdir\n'
 		[ -f "$dest/usr/local/bin/tool" ] || bad "make install: no bin/tool under DESTDIR"
 		[ -f "$man" ] || bad "make install: no man1/tool.1 under DESTDIR"
 		# the install recipe seds VERSION into the page as it copies it
-		grep -q "tool-$ver" "$man" || bad "make install: VERSION not substituted in tool.1"
-		printf '  make install   -> DESTDIR/usr/local/{bin/tool,share/man/man1/tool.1}\n'
+		grep -q "tool-$ver" "$man" 2>/dev/null || \
+			bad "make install: VERSION not substituted in tool.1"
 		if mk uninstall DESTDIR="$dest" >>build/make-install.log 2>&1; then
+			printf '  make uninstall -> ran\n'
 			[ -f "$dest/usr/local/bin/tool" ] && bad "make uninstall left bin/tool"
 			[ -f "$man" ] && bad "make uninstall left man1/tool.1"
-			printf '  make uninstall -> both removed\n'
 		else
 			bad "make uninstall failed"
 			sed 's/^/  /' build/make-install.log
