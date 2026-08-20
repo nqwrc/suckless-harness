@@ -85,7 +85,10 @@ Needs `awk` and a C99 compiler. It extracts every C block from `SKILL.md` into
 `test/build/`, compiles them, runs the worked example, runs `arg.h` through nine
 invocation forms, compares the three `arg.h` variants for operand loss and for
 out-of-bounds reads, and syntax-checks `drw.c` against stub X11 headers.
-AddressSanitizer checks are skipped if the compiler lacks them.
+AddressSanitizer checks are skipped if the compiler lacks them. If `make` is on
+`PATH`, it also extracts § 4.1's `Makefile` and `config.mk`, builds the worked
+example through them (`SRC = tool.c util.c`), and dry-runs `install`/`dist`;
+skipped with a message if `make` is absent.
 
 `drw.c` is compiled, not linked or run — that needs real Xlib and an X server.
 
@@ -106,9 +109,9 @@ what the skill ships.
 
 ## Status
 
-Version 1.2. The code blocks are verified as described above; the `Makefile` and
-`config.mk` are reviewed by hand rather than executed, since the check runs
-without `make`.
+Version 1.2. The code blocks are verified as described above; the `Makefile`
+and `config.mk` are built and run through `make` when it is present on
+`PATH`, and skipped with a message otherwise.
 
 Corrections welcome, particularly on the `arg.h` reasoning.
 

@@ -119,6 +119,50 @@ note "drw.c syntax check (SKILL.md section 3.6)"
 $CC $WARN -I x11stub -I build -c build/drw.c -o build/drw.o
 printf '  ok (stub X11/Xft headers; not linked, needs a real X server)\n'
 
+note "Makefile + config.mk (SKILL.md section 4.1)"
+if command -v make >/dev/null 2>&1; then
+	mkdir -p build/maketest
+	(cd build/maketest && awk '
+		/^```makefile$/ { inblk = 1; n = 0; next }
+		/^```$/ {
+			if (inblk) {
+				name = ""
+				if (buf[1] ~ /^VERSION = /)         name = "config.mk"
+				if (buf[1] ~ /^include config\.mk/) name = "Makefile"
+				if (name != "") {
+					for (i = 1; i <= n; i++)
+						print buf[i] > name
+					close(name)
+				}
+			}
+			inblk = 0
+			next
+		}
+		inblk { buf[++n] = $0 }
+	' ../../../SKILL.md)
+	for f in config.mk Makefile; do
+		[ -f "build/maketest/$f" ] || bad "SKILL.md produced no $f"
+	done
+	# tool.c/SRC are the Makefile's generic placeholder name; the worked
+	# example (lc.c + util.c + arg.h) is real code that fits the same slot.
+	cp build/util.c build/util.h build/arg.h build/config.def.h build/maketest/
+	cp build/lc.c build/maketest/tool.c
+	if (cd build/maketest && make CC="$CC" >../make.log 2>&1) && [ -x build/maketest/tool ]; then
+		out=$(printf 'a\nb\nc\n' | ./build/maketest/tool)
+		[ "$out" = "3 <stdin>" ] || bad "make-built tool: got '$out', want '3 <stdin>'"
+		printf '  built and ran tool via make (SRC = tool.c util.c) -> %s\n' "$out"
+	else
+		bad "make failed to build tool from the shipped Makefile/config.mk"
+		sed 's/^/  /' build/make.log
+	fi
+	(cd build/maketest && make -n install >/dev/null 2>&1) || \
+		bad "make -n install: recipe does not expand cleanly"
+	(cd build/maketest && make -n dist    >/dev/null 2>&1) || \
+		bad "make -n dist: recipe does not expand cleanly"
+else
+	printf '  skipped (no make)\n'
+fi
+
 echo
 if [ "$fail" = 0 ]; then
 	echo "all checks passed"
