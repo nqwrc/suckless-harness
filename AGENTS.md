@@ -6,7 +6,8 @@ Suckless-philosophy C programs, shell scripts and the SKILL.md teaching document
 - Nothing to install. Needs a C99 compiler (`cc`), `awk`, GNU `make`.
 
 ## Verify before opening a PR
-- `sh test/run.sh` extracts every C block from SKILL.md, compiles and runs it.
+- `ASAN_OPTIONS=detect_leaks=0 sh test/run.sh` extracts every C block from SKILL.md, compiles and runs it.
+- Keep `detect_leaks=0` in sandboxes without ptrace (Jules VM); LeakSanitizer otherwise aborts the ASan probe binaries.
 
 ## Conventions
 - suckless style: C99, hand-written Makefile, `die()`/`ecalloc()`, `config.h`, no bloat.
