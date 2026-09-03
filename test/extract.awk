@@ -9,26 +9,30 @@
 
 /^```c$/ { inblk = 1; n = 0; next }
 
+function process_block() {
+	name = ""
+	if (buf[1] ~ /^\/\* [A-Za-z0-9_.]+\.[ch] \*\/$/) {
+		name = buf[1]
+		sub(/^\/\* /, "", name)
+		sub(/ \*\/$/, "", name)
+	} else {
+		for (i = 1; i <= n; i++) {
+			if (buf[i] ~ /#ifndef ARG_H/)  name = "arg.h"
+			if (buf[i] ~ /#ifndef UTIL_H/) name = "util.h"
+			if (buf[i] ~ /^lc\(FILE \*fp/) name = "lc.c"
+		}
+	}
+	if (name != "") {
+		for (i = 1; i <= n; i++)
+			print buf[i] > name
+		close(name)
+		printf "  %-14s %3d lines\n", name, n
+	}
+}
+
 /^```$/ {
 	if (inblk) {
-		name = ""
-		if (buf[1] ~ /^\/\* [A-Za-z0-9_.]+\.[ch] \*\/$/) {
-			name = buf[1]
-			sub(/^\/\* /, "", name)
-			sub(/ \*\/$/, "", name)
-		} else {
-			for (i = 1; i <= n; i++) {
-				if (buf[i] ~ /#ifndef ARG_H/)  name = "arg.h"
-				if (buf[i] ~ /#ifndef UTIL_H/) name = "util.h"
-				if (buf[i] ~ /^lc\(FILE \*fp/) name = "lc.c"
-			}
-		}
-		if (name != "") {
-			for (i = 1; i <= n; i++)
-				print buf[i] > name
-			close(name)
-			printf "  %-14s %3d lines\n", name, n
-		}
+		process_block()
 	}
 	inblk = 0
 	next

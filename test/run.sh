@@ -78,15 +78,19 @@ expect "-- -x"         "v=0 file=(null) rest=1 -x"
 expect "-"             "v=0 file=(null) rest=1 -"
 expect "a b"           "v=0 file=(null) rest=2 a b"
 
-note "operand loss check: shipped vs upstream vs broken"
-# t3.c allocates each argv string with calloc, so the byte after the
-# terminator is zero -- the case a normal contiguous stack hides.
-for v in shipped upstream broken; do
-	case $v in
+set_inc_for_variant() {
+	case $1 in
 	shipped)  inc="build" ;;
 	upstream) inc="upstream" ;;
 	broken)   inc="broken" ;;
 	esac
+}
+
+note "operand loss check: shipped vs upstream vs broken"
+# t3.c allocates each argv string with calloc, so the byte after the
+# terminator is zero -- the case a normal contiguous stack hides.
+for v in shipped upstream broken; do
+	set_inc_for_variant "$v"
 	$CC $WARN -I "$inc" -o "build/t3-$v" t3.c
 	got=$(./build/t3-$v | sed -n 's/^actual: *//p')
 	printf '  %-9s -> %s\n' "$v" "$got"
@@ -105,11 +109,7 @@ if printf 'int main(void){return 0;}\n' | \
    $CC -fsanitize=address -x c -o build/asanprobe - 2>/dev/null && \
    ./build/asanprobe >/dev/null 2>&1; then
 	for v in shipped upstream broken; do
-		case $v in
-		shipped)  inc="build" ;;
-		upstream) inc="upstream" ;;
-		broken)   inc="broken" ;;
-		esac
+		set_inc_for_variant "$v"
 		$CC $WARN -I "$inc" -fsanitize=address -g -o "build/t2-$v" t2.c
 		if ./build/t2-$v >/dev/null 2>"build/asan-$v.log"; then
 			printf '  %-9s -> clean\n' "$v"
@@ -145,16 +145,19 @@ else
 	mkdir -p build/maketest
 	(cd build/maketest && awk '
 		/^```makefile$/ { inblk = 1; n = 0; next }
+		function process_block() {
+			name = ""
+			if (buf[1] ~ /^VERSION = /)         name = "config.mk"
+			if (buf[1] ~ /^include config\.mk/) name = "Makefile"
+			if (name != "") {
+				for (i = 1; i <= n; i++)
+					print buf[i] > name
+				close(name)
+			}
+		}
 		/^```$/ {
 			if (inblk) {
-				name = ""
-				if (buf[1] ~ /^VERSION = /)         name = "config.mk"
-				if (buf[1] ~ /^include config\.mk/) name = "Makefile"
-				if (name != "") {
-					for (i = 1; i <= n; i++)
-						print buf[i] > name
-					close(name)
-				}
+				process_block()
 			}
 			inblk = 0
 			next
