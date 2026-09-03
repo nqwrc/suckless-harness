@@ -15,6 +15,14 @@ cd "$(dirname "$0")"
 here=$(pwd)
 
 CC=${CC:-cc}
+
+for cmd in "$CC" awk; do
+	if ! command -v "$cmd" >/dev/null 2>&1; then
+		printf 'FAIL: required command "%s" not found\n' "$cmd" >&2
+		exit 1
+	fi
+done
+
 WARN="-std=c99 -pedantic -Wall -Wextra"
 FEAT="-D_POSIX_C_SOURCE=200809L"
 # Windows CRT calls fopen/strdup "deprecated"; ignored elsewhere.
