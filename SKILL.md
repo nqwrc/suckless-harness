@@ -1053,10 +1053,12 @@ counts lines in files or stdin:
 
 char *argv0;
 
+static int csv = 0;
+
 static void
 usage(void)
 {
-	die("usage: %s [file ...]", argv0);
+	die("usage: %s [-c] [file ...]", argv0);
 }
 
 static void
@@ -1071,7 +1073,11 @@ lc(FILE *fp, const char *fname)
 			n++;
 	if (ferror(fp))
 		die("read %s:", fname);
-	printf("%lu %s\n", n, fname);
+
+	if (csv)
+		printf("%lu,%s\n", n, fname);
+	else
+		printf("%lu %s\n", n, fname);
 }
 
 int
@@ -1081,6 +1087,9 @@ main(int argc, char *argv[])
 	int i;
 
 	ARGBEGIN {
+	case 'c':
+		csv = 1;
+		break;
 	default:
 		usage();
 	} ARGEND;
