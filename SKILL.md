@@ -1066,9 +1066,15 @@ lc(FILE *fp, const char *fname)
 	unsigned long n;
 
 	n = 0;
-	while ((c = fgetc(fp)) != EOF)
-		if (c == '\n')
+	while ((c = fgetc(fp)) != EOF) {
+		if (c == '\n') {
 			n++;
+			if (n % 10000000 == 0)
+				fprintf(stderr, ".");
+		}
+	}
+	if (n >= 10000000)
+		fprintf(stderr, "\n");
 	if (ferror(fp))
 		die("read %s:", fname);
 	printf("%lu %s\n", n, fname);
