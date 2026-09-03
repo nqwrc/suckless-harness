@@ -256,7 +256,7 @@ static const Key keys[] = {
 };
 ```
 
-### 3.3 Error Handling: The `die()` / `ecalloc()` / `estrdup()` Pattern
+### 3.3 Error Handling: The `die()` / `emalloc()` / `estrdup()` Pattern
 
 Provide exactly these utility functions in every project:
 
@@ -298,6 +298,24 @@ ecalloc(size_t nmemb, size_t size)
 	return p;
 }
 
+void *
+emalloc(size_t size)
+{
+	void *p;
+
+	if (!(p = malloc(size)))
+		die("malloc:");
+	return p;
+}
+
+void *
+erealloc(void *p, size_t size)
+{
+	if (!(p = realloc(p, size)))
+		die("realloc:");
+	return p;
+}
+
 char *
 estrdup(const char *s)
 {
@@ -316,7 +334,7 @@ estrdup(const char *s)
 The `fmt[0] &&` guard is **required**: without it, an empty format string makes
 `fmt[strlen(fmt) - 1]` read `fmt[-1]`, which is undefined behaviour.
 
-After `ecalloc()` and `estrdup()`, **never** check for `NULL`. The wrappers
+After `emalloc()`, `ecalloc()`, `erealloc()`, and `estrdup()`, **never** check for `NULL`. The wrappers
 guarantee non-NULL return or program termination.
 
 `strdup()` requires `_POSIX_C_SOURCE 200809L` (or `_DEFAULT_SOURCE`); the
@@ -960,7 +978,7 @@ project/
 ├── config.mk        # Platform paths, compiler flags
 ├── project.1        # Man page in roff format
 ├── project.c        # Main source (single file if < 2000 SLOC)
-├── util.c           # die(), ecalloc(), estrdup()
+├── util.c           # die(), ecalloc(), emalloc(), erealloc(), estrdup()
 └── util.h           # Prototypes for util.c
 ```
 
@@ -982,6 +1000,8 @@ For X11 graphical programs, add:
 
 void die(const char *fmt, ...);
 void *ecalloc(size_t nmemb, size_t size);
+void *emalloc(size_t size);
+void *erealloc(void *p, size_t size);
 char *estrdup(const char *s);
 
 #endif /* UTIL_H */
@@ -1001,7 +1021,7 @@ Before presenting ANY code to the user, verify against this checklist:
 - [ ] Opening brace on own line for functions, same line for control structures?
 - [ ] Tabs for indentation, spaces for alignment?
 - [ ] All file-local functions declared `static`?
-- [ ] Allocation wrappers used (`ecalloc`, `estrdup`)? No scattered NULL checks?
+- [ ] Allocation wrappers used (`emalloc`, `ecalloc`, `erealloc`, `estrdup`)? No scattered NULL checks?
 - [ ] Error handling via `die()` with colon trick, including the `fmt[0]` guard?
 - [ ] `arg.h` macros reproduced verbatim, with every subscript intact?
 - [ ] `ARGEND` branches on `argused_` alone — no re-read of `argv[0][i_ + 1]`?
