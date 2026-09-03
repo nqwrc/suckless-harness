@@ -931,6 +931,7 @@ just being difficult.
 - ❌ Dependency injection
 - ❌ Abstract base classes / interfaces
 - ❌ Multiple levels of indirection (pointer-to-pointer-to-pointer)
+- ❌ Built-in pagination or virtual scrolling for TUI/CLI (pipe everything to `less` or `more`)
 - ✅ **Structs + function pointers + linked lists + bitmasks.**
 - ✅ **Direct procedural code with clear control flow.**
 
