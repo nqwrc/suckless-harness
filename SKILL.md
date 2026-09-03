@@ -584,7 +584,7 @@ drw_create(Display *dpy, int screen, Window root, unsigned int w, unsigned int h
 	drw->visual = DefaultVisual(dpy, screen);
 	drw->cmap = DefaultColormap(dpy, screen);
 	drw->depth = DefaultDepth(dpy, screen);
-	drw->drawable = XCreatePixmap(dpy, root, w, h, drw->depth);
+	drw->drawable = XCreatePixmap(dpy, root, w ? w : 1, h ? h : 1, drw->depth);
 	drw->gc = XCreateGC(dpy, root, 0, NULL);
 	XSetLineAttributes(dpy, drw->gc, 1, LineSolid, CapButt, JoinMiter);
 
@@ -598,7 +598,7 @@ drw_resize(Drw *drw, unsigned int w, unsigned int h)
 	drw->h = h;
 	if (drw->drawable)
 		XFreePixmap(drw->dpy, drw->drawable);
-	drw->drawable = XCreatePixmap(drw->dpy, drw->root, w, h, drw->depth);
+	drw->drawable = XCreatePixmap(drw->dpy, drw->root, w ? w : 1, h ? h : 1, drw->depth);
 }
 
 void
@@ -619,6 +619,8 @@ drw_setscheme(Drw *drw, Clr *scm)
 void
 drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled, int invert)
 {
+	if (!w || !h)
+		return;
 	XSetForeground(drw->dpy, drw->gc, invert ? drw->scheme[ColBg].pixel
 	                                         : drw->scheme[ColFg].pixel);
 	if (filled)
@@ -929,6 +931,7 @@ just being difficult.
 - ❌ Dependency injection
 - ❌ Abstract base classes / interfaces
 - ❌ Multiple levels of indirection (pointer-to-pointer-to-pointer)
+- ❌ Built-in pagination or virtual scrolling for TUI/CLI (pipe everything to `less` or `more`)
 - ✅ **Structs + function pointers + linked lists + bitmasks.**
 - ✅ **Direct procedural code with clear control flow.**
 
@@ -1053,10 +1056,12 @@ counts lines in files or stdin:
 
 char *argv0;
 
+static int csv = 0;
+
 static void
 usage(void)
 {
-	die("usage: %s [file ...]", argv0);
+	die("usage: %s [-c] [file ...]", argv0);
 }
 
 static void
@@ -1071,7 +1076,11 @@ lc(FILE *fp, const char *fname)
 			n++;
 	if (ferror(fp))
 		die("read %s:", fname);
-	printf("%lu %s\n", n, fname);
+
+	if (csv)
+		printf("%lu,%s\n", n, fname);
+	else
+		printf("%lu %s\n", n, fname);
 }
 
 int
@@ -1081,6 +1090,9 @@ main(int argc, char *argv[])
 	int i;
 
 	ARGBEGIN {
+	case 'c':
+		csv = 1;
+		break;
 	default:
 		usage();
 	} ARGEND;
