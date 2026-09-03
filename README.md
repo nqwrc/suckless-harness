@@ -123,4 +123,4 @@ Corrections welcome, particularly on the `arg.h` reasoning.
 
 ## License
 
-MIT/X Consortium. See `LICENSE`.
+MIT License. See `LICENSE`.
