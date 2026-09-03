@@ -288,42 +288,36 @@ die(const char *fmt, ...)
 	exit(1);
 }
 
+static void *
+enomem(void *p, const char *msg)
+{
+	if (!p)
+		die("%s:", msg);
+	return p;
+}
+
 void *
 ecalloc(size_t nmemb, size_t size)
 {
-	void *p;
-
-	if (!(p = calloc(nmemb, size)))
-		die("calloc:");
-	return p;
+	return enomem(calloc(nmemb, size), "calloc");
 }
 
 void *
 emalloc(size_t size)
 {
-	void *p;
-
-	if (!(p = malloc(size)))
-		die("malloc:");
-	return p;
+	return enomem(malloc(size), "malloc");
 }
 
 void *
 erealloc(void *p, size_t size)
 {
-	if (!(p = realloc(p, size)))
-		die("realloc:");
-	return p;
+	return enomem(realloc(p, size), "realloc");
 }
 
 char *
 estrdup(const char *s)
 {
-	char *p;
-
-	if (!(p = strdup(s)))
-		die("strdup:");
-	return p;
+	return enomem(strdup(s), "strdup");
 }
 ```
 
