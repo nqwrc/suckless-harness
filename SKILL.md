@@ -1108,6 +1108,9 @@ main(int argc, char *argv[])
 		}
 	}
 
+	if (fflush(stdout) == EOF || ferror(stdout))
+		die("stdout:");
+
 	return 0;
 }
 ```
