@@ -7,7 +7,7 @@
 # identified by content. Every other C block in the document is an isolated
 # fragment and is skipped.
 
-/^```c$/ { inblk = 1; n = 0; next }
+/^```(c|makefile)$/ { inblk = 1; n = 0; next }
 
 /^```$/ {
 	if (inblk) {
@@ -16,6 +16,10 @@
 			name = buf[1]
 			sub(/^\/\* /, "", name)
 			sub(/ \*\/$/, "", name)
+		} else if (buf[1] ~ /^VERSION = /) {
+			name = "config.mk"
+		} else if (buf[1] ~ /^include config\.mk/) {
+			name = "Makefile"
 		} else {
 			for (i = 1; i <= n; i++) {
 				if (buf[i] ~ /#ifndef ARG_H/)  name = "arg.h"
