@@ -15,8 +15,10 @@ cd "$(dirname "$0")"
 here=$(pwd)
 
 CC=${CC:-cc}
+AWK=${AWK:-awk}
+MAKE=${MAKE:-make}
 
-for cmd in "$CC" awk; do
+for cmd in "$CC" "$AWK"; do
 	if ! command -v "$cmd" >/dev/null 2>&1; then
 		printf 'FAIL: required command "%s" not found\n' "$cmd" >&2
 		exit 1
@@ -36,7 +38,7 @@ note() { printf '\n== %s ==\n' "$1"; }
 bad()  { printf 'FAIL: %s\n' "$1"; fail=1; }
 
 note "extracting sources from SKILL.md"
-(cd build && awk -f ../extract.awk ../../SKILL.md)
+(cd build && "$AWK" -f ../extract.awk ../../SKILL.md)
 
 for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h; do
 	[ -f "build/$f" ] || bad "SKILL.md produced no $f"
@@ -137,13 +139,13 @@ note "Makefile + config.mk (SKILL.md section 4.1)"
 # (which runs clean first). A dry run would prove nothing -- make -n never
 # reads a recipe body closely enough to fail on it.
 ok=0
-if ! command -v make >/dev/null 2>&1; then
+if ! command -v "$MAKE" >/dev/null 2>&1; then
 	printf '  skipped (no make on PATH)\n'
-elif ! make --version 2>/dev/null | grep -q GNU; then
+elif ! "$MAKE" --version 2>/dev/null | grep -q GNU; then
 	printf '  skipped (make is not GNU make; BSD make is untested here)\n'
 else
 	mkdir -p build/maketest
-	(cd build/maketest && awk '
+	(cd build/maketest && "$AWK" '
 		/^```makefile$/ { inblk = 1; n = 0; next }
 		/^```$/ {
 			if (inblk) {
@@ -183,7 +185,7 @@ if [ "$ok" = 1 ]; then
 		> build/maketest/README
 	printf '.TH TOOL 1 tool-VERSION\n.SH NAME\ntool \\- scaffold\n' \
 		> build/maketest/tool.1
-	mk() { (cd build/maketest && make CC="$CC" "$@"); }
+	mk() { (cd build/maketest && "$MAKE" CC="$CC" "$@"); }
 	ver=$(sed -n 's/^VERSION = //p' build/maketest/config.mk)
 	dest=$here/build/destdir
 	man=$dest/usr/local/share/man/man1/tool.1
