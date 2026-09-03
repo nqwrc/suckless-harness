@@ -1044,6 +1044,7 @@ counts lines in files or stdin:
 
 ```c
 /* See LICENSE file for copyright and license details. */
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1052,6 +1053,14 @@ counts lines in files or stdin:
 #include "util.h"
 
 char *argv0;
+static volatile sig_atomic_t cancel;
+
+static void
+sighandler(int sig)
+{
+	(void)sig;
+	cancel = 1;
+}
 
 static void
 usage(void)
@@ -1066,7 +1075,7 @@ lc(FILE *fp, const char *fname)
 	unsigned long n;
 
 	n = 0;
-	while ((c = fgetc(fp)) != EOF)
+	while (!cancel && (c = fgetc(fp)) != EOF)
 		if (c == '\n')
 			n++;
 	if (ferror(fp))
@@ -1085,10 +1094,15 @@ main(int argc, char *argv[])
 		usage();
 	} ARGEND;
 
+	signal(SIGINT, sighandler);
+	signal(SIGTERM, sighandler);
+
 	if (!argc) {
 		lc(stdin, "<stdin>");
 	} else {
 		for (i = 0; i < argc; i++) {
+			if (cancel)
+				break;
 			if (!(fp = fopen(argv[i], "r")))
 				die("fopen %s:", argv[i]);
 			lc(fp, argv[i]);
