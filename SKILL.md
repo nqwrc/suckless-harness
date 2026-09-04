@@ -262,6 +262,7 @@ Provide exactly these utility functions in every project:
 
 ```c
 /* util.c */
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -324,6 +325,21 @@ estrdup(const char *s)
 	if (!(p = strdup(s)))
 		die("strdup:");
 	return p;
+}
+
+long
+estrtol(const char *s, int base)
+{
+	char *ep;
+	long n;
+
+	errno = 0;
+	n = strtol(s, &ep, base);
+	if (s[0] == '\0' || *ep != '\0')
+		die("estrtol: not an integer: %s", s);
+	if (errno == ERANGE)
+		die("estrtol: out of range: %s", s);
+	return n;
 }
 ```
 
@@ -1003,6 +1019,7 @@ void *ecalloc(size_t nmemb, size_t size);
 void *emalloc(size_t size);
 void *erealloc(void *p, size_t size);
 char *estrdup(const char *s);
+long estrtol(const char *s, int base);
 
 #endif /* UTIL_H */
 ```
@@ -1021,7 +1038,7 @@ Before presenting ANY code to the user, verify against this checklist:
 - [ ] Opening brace on own line for functions, same line for control structures?
 - [ ] Tabs for indentation, spaces for alignment?
 - [ ] All file-local functions declared `static`?
-- [ ] Allocation wrappers used (`emalloc`, `ecalloc`, `erealloc`, `estrdup`)? No scattered NULL checks?
+- [ ] Allocation wrappers used (`emalloc`, `ecalloc`, `erealloc`, `estrdup`, `estrtol`)? No scattered NULL checks?
 - [ ] Error handling via `die()` with colon trick, including the `fmt[0]` guard?
 - [ ] `arg.h` macros reproduced verbatim, with every subscript intact?
 - [ ] `ARGEND` branches on `argused_` alone — no re-read of `argv[0][i_ + 1]`?

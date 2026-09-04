@@ -45,6 +45,16 @@ main(void)
 	}
 	free(s);
 
+	/* estrtol */
+	if (estrtol("12345", 10) != 12345) {
+		fprintf(stderr, "estrtol: failed to parse 12345\n");
+		return 1;
+	}
+	if (estrtol("-987", 10) != -987) {
+		fprintf(stderr, "estrtol: failed to parse -987\n");
+		return 1;
+	}
+
 	printf("ok\n");
 	return 0;
 }
