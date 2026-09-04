@@ -59,6 +59,49 @@ else
 	esac
 fi
 
+if err=$(./build/lc -z 2>&1); then
+	bad "lc should exit nonzero on invalid flag"
+else
+	printf '  invalid    -> %s (exit %d)\n' "$err" "$?"
+	case $err in
+	"usage: "*) : ;;
+	*) bad "die() usage: got '$err'" ;;
+	esac
+fi
+
+mkdir -p build/dir
+if err=$(./build/lc build/dir 2>&1); then
+	bad "lc should exit nonzero on directory read"
+else
+	printf '  read dir   -> %s (exit %d)\n' "$err" "$?"
+	case $err in
+	"read build/dir: "*) : ;;
+	*) bad "die() read: got '$err'" ;;
+	esac
+fi
+
+touch build/noperm
+chmod 000 build/noperm
+if err=$(./build/lc build/noperm 2>&1); then
+	bad "lc should exit nonzero on unreadable file"
+else
+	printf '  no perm    -> %s (exit %d)\n' "$err" "$?"
+	case $err in
+	"fopen build/noperm: "*) : ;;
+	*) bad "die() noperm: got '$err'" ;;
+	esac
+fi
+
+if err=$(sh -c './build/lc < /dev/null 2>&1 > /dev/full'); then
+	bad "lc should exit nonzero on stdout write failure"
+else
+	printf '  stdout err -> %s (exit %d)\n' "$err" "$?"
+	case $err in
+	"stdout: "*) : ;;
+	*) bad "die() stdout: got '$err'" ;;
+	esac
+fi
+
 note "arg.h option matrix (SKILL.md section 3.4)"
 $CC $WARN -I build -o build/t t.c
 for a in "-vfX" "-f Y z" "-v" "-- -x" "-f FILE t1 t2" "-vf Y" "a b" "-"; do
