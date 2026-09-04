@@ -16,7 +16,9 @@ usage(void)
 static char *
 dup_(const char *s)
 {
-	char *p = malloc(strlen(s) + 1);
+	char *p;
+
+	p = malloc(strlen(s) + 1);
 	memcpy(p, s, strlen(s) + 1);
 	return p;
 }
@@ -24,8 +26,10 @@ dup_(const char *s)
 static void
 run(int argc, char *argv[])
 {
-	char *file = NULL;
+	char *file;
 	int i;
+
+	file = NULL;
 
 	ARGBEGIN {
 	case 'f':
@@ -54,5 +58,10 @@ main(void)
 	av[4] = NULL;
 
 	run(4, av);
+
+	free(av[0]);
+	free(av[1]);
+	free(av[2]);
+	free(av[3]);
 	return 0;
 }
