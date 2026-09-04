@@ -100,9 +100,10 @@ file. § 4.1 is a template, so the harness supplies the `LICENSE`, `README` and
 test/
 ├── run.sh            all checks
 ├── extract.awk       pulls the C sources back out of SKILL.md
-├── t.c               option matrix
-├── t2.c              heap-allocated argv, for AddressSanitizer
-├── t3.c              calloc'd argv, zero slack after the terminator
+├── t_arg.c           option matrix
+├── t_arg_asan.c      heap-allocated argv, for AddressSanitizer
+├── t_arg_pad.c       calloc'd argv, zero slack after the terminator
+├── t_util.c          util.c unit tests
 ├── upstream/arg.h    comparison baseline, transcribed from st
 ├── broken/arg.h      the defective variant, kept to demonstrate the failure
 └── x11stub/          minimal X11/Xft headers for the drw.c syntax check
