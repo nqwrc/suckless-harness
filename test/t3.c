@@ -18,7 +18,9 @@ pad_(const char *s)
 {
 	/* zero-filled slack after the NUL: what a hardened/zeroing
 	 * allocator or a differently-laid-out stack would give you */
-	char *p = calloc(1, 16);
+	char *p;
+
+	p = calloc(1, 16);
 	memcpy(p, s, strlen(s));
 	return p;
 }
@@ -26,8 +28,10 @@ pad_(const char *s)
 static void
 run(int argc, char *argv[])
 {
-	char *file = NULL;
+	char *file;
 	int i;
+
+	file = NULL;
 
 	ARGBEGIN {
 	case 'f':
@@ -57,5 +61,10 @@ main(void)
 	printf("expected: file=Y rest=1 : z\n");
 	printf("actual:   ");
 	run(4, av);
+
+	free(av[0]);
+	free(av[1]);
+	free(av[2]);
+	free(av[3]);
 	return 0;
 }
