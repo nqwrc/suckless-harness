@@ -5,10 +5,17 @@
 #include "util.h"
 
 int
-main(void)
+main(int argc, char *argv[])
 {
 	char *p, *q, *s;
 	int i;
+
+	if (argc > 1 && strcmp(argv[1], "die") == 0) {
+		die("test:");
+	}
+	if (argc > 1 && strcmp(argv[1], "die_no_colon") == 0) {
+		die("test");
+	}
 
 	/* emalloc */
 	p = emalloc(10);
