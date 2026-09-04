@@ -68,7 +68,7 @@ printf '  %-16s -> ' "-f (no operand)"
 ./build/t -f 2>&1 || true
 
 expect() {
-	got=$(./build/t $1)
+	got=$(eval "./build/t $1")
 	[ "$got" = "$2" ] || bad "'$1': got '$got', want '$2'"
 }
 expect "-vfX"          "v=1 file=X rest=0"
@@ -77,6 +77,9 @@ expect "-vf Y"         "v=1 file=Y rest=0"
 expect "-- -x"         "v=0 file=(null) rest=1 -x"
 expect "-"             "v=0 file=(null) rest=1 -"
 expect "a b"           "v=0 file=(null) rest=2 a b"
+expect '""'            "v=0 file=(null) rest=1 "
+expect "-f ''"         "v=0 file= rest=0"
+expect "-f '  '"       "v=0 file=   rest=0"
 
 note "operand loss check: shipped vs upstream vs broken"
 # t3.c allocates each argv string with calloc, so the byte after the
