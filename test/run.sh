@@ -42,6 +42,17 @@ for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h config.mk Makefile; d
 	[ -f "build/$f" ] || bad "SKILL.md produced no $f"
 done
 
+note "CRLF line endings (Windows clones)"
+mkdir -p build/crlf
+awk '{printf "%s\r\n", $0}' ../SKILL.md > build/SKILL-crlf.md
+(cd build/crlf && awk -f ../../extract.awk ../SKILL-crlf.md >/dev/null)
+for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h config.mk Makefile; do
+	if ! cmp -s "build/$f" "build/crlf/$f"; then
+		bad "$f extracted from CRLF SKILL.md does not match"
+	fi
+done
+printf '  ok (extract.awk handles \\r)\n'
+
 note "worked example (SKILL.md section 11)"
 $CC $WARN $FEAT -DVERSION='"test"' -o build/lc build/lc.c build/util.c
 out=$(printf 'a\nb\nc\n' | ./build/lc)
