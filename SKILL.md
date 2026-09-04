@@ -548,6 +548,19 @@ enum { ColFg, ColBg, ColBorder };
 typedef XftColor Clr;
 
 typedef struct {
+	int x, y;
+	unsigned int w, h;
+} Rect;
+
+typedef struct {
+	Display *dpy;
+	int screen;
+	Window root;
+	unsigned int w;
+	unsigned int h;
+} DrwConfig;
+
+typedef struct {
 	unsigned int w, h;
 	Display *dpy;
 	int screen;
@@ -562,18 +575,18 @@ typedef struct {
 } Drw;
 
 /* plumbing — defined in drw.c below */
-Drw *drw_create(Display *dpy, int screen, Window root, unsigned int w, unsigned int h);
+Drw *drw_create(DrwConfig *cfg);
 void drw_resize(Drw *drw, unsigned int w, unsigned int h);
 void drw_free(Drw *drw);
 void drw_setscheme(Drw *drw, Clr *scm);
-void drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled, int invert);
-void drw_map(Drw *drw, Window win, int x, int y, unsigned int w, unsigned int h);
+void drw_rect(Drw *drw, Rect r, int filled, int invert);
+void drw_map(Drw *drw, Window win, Rect r);
 
 /* per-project — port from dwm's drw.c */
 Fnt *drw_fontset_create(Drw *drw, const char *fonts[], size_t fontcount);
 void drw_fontset_free(Fnt *set);
 Clr *drw_scm_create(Drw *drw, const char *clrnames[], size_t clrcount);
-int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lpad, const char *text, int invert);
+int drw_text(Drw *drw, Rect r, unsigned int lpad, const char *text, int invert);
 
 #endif /* DRW_H */
 ```
@@ -589,22 +602,22 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
 #include "util.h"
 
 Drw *
-drw_create(Display *dpy, int screen, Window root, unsigned int w, unsigned int h)
+drw_create(DrwConfig *cfg)
 {
 	Drw *drw;
 
 	drw = ecalloc(1, sizeof(*drw));
-	drw->dpy = dpy;
-	drw->screen = screen;
-	drw->root = root;
-	drw->w = w;
-	drw->h = h;
-	drw->visual = DefaultVisual(dpy, screen);
-	drw->cmap = DefaultColormap(dpy, screen);
-	drw->depth = DefaultDepth(dpy, screen);
-	drw->drawable = XCreatePixmap(dpy, root, w ? w : 1, h ? h : 1, drw->depth);
-	drw->gc = XCreateGC(dpy, root, 0, NULL);
-	XSetLineAttributes(dpy, drw->gc, 1, LineSolid, CapButt, JoinMiter);
+	drw->dpy = cfg->dpy;
+	drw->screen = cfg->screen;
+	drw->root = cfg->root;
+	drw->w = cfg->w;
+	drw->h = cfg->h;
+	drw->visual = DefaultVisual(cfg->dpy, cfg->screen);
+	drw->cmap = DefaultColormap(cfg->dpy, cfg->screen);
+	drw->depth = DefaultDepth(cfg->dpy, cfg->screen);
+	drw->drawable = XCreatePixmap(cfg->dpy, cfg->root, cfg->w ? cfg->w : 1, cfg->h ? cfg->h : 1, drw->depth);
+	drw->gc = XCreateGC(cfg->dpy, cfg->root, 0, NULL);
+	XSetLineAttributes(cfg->dpy, drw->gc, 1, LineSolid, CapButt, JoinMiter);
 
 	return drw;
 }
@@ -635,22 +648,22 @@ drw_setscheme(Drw *drw, Clr *scm)
 }
 
 void
-drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled, int invert)
+drw_rect(Drw *drw, Rect r, int filled, int invert)
 {
-	if (!w || !h)
+	if (!r.w || !r.h)
 		return;
 	XSetForeground(drw->dpy, drw->gc, invert ? drw->scheme[ColBg].pixel
 	                                         : drw->scheme[ColFg].pixel);
 	if (filled)
-		XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, y, w, h);
+		XFillRectangle(drw->dpy, drw->drawable, drw->gc, r.x, r.y, r.w, r.h);
 	else
-		XDrawRectangle(drw->dpy, drw->drawable, drw->gc, x, y, w - 1, h - 1);
+		XDrawRectangle(drw->dpy, drw->drawable, drw->gc, r.x, r.y, r.w - 1, r.h - 1);
 }
 
 void
-drw_map(Drw *drw, Window win, int x, int y, unsigned int w, unsigned int h)
+drw_map(Drw *drw, Window win, Rect r)
 {
-	XCopyArea(drw->dpy, drw->drawable, win, drw->gc, x, y, w, h, x, y);
+	XCopyArea(drw->dpy, drw->drawable, win, drw->gc, r.x, r.y, r.w, r.h, r.x, r.y);
 	XSync(drw->dpy, False);
 }
 ```
