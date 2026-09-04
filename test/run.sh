@@ -61,14 +61,14 @@ fi
 
 note "arg.h option matrix (SKILL.md section 3.4)"
 $CC $WARN -I build -o build/t t.c
-for a in "-vfX" "-f Y z" "-v" "-- -x" "-f FILE t1 t2" "-vf Y" "a b" "-"; do
-	printf '  %-16s -> %s\n' "$a" "$(./build/t $a)"
+for a in "-vfX" "-f Y z" "-v" "-- -x" "-f FILE t1 t2" "-vf Y" "'a b'" "-" "''"; do
+	printf '  %-16s -> %s\n' "$a" "$(eval "./build/t $a")"
 done
 printf '  %-16s -> ' "-f (no operand)"
 ./build/t -f 2>&1 || true
 
 expect() {
-	got=$(./build/t $1)
+	got=$(eval "./build/t $1")
 	[ "$got" = "$2" ] || bad "'$1': got '$got', want '$2'"
 }
 expect "-vfX"          "v=1 file=X rest=0"
@@ -76,7 +76,8 @@ expect "-f Y z"        "v=0 file=Y rest=1 z"
 expect "-vf Y"         "v=1 file=Y rest=0"
 expect "-- -x"         "v=0 file=(null) rest=1 -x"
 expect "-"             "v=0 file=(null) rest=1 -"
-expect "a b"           "v=0 file=(null) rest=2 a b"
+expect "'a b'"         "v=0 file=(null) rest=1 a b"
+expect "''"            "v=0 file=(null) rest=1 "
 
 note "operand loss check: shipped vs upstream vs broken"
 # t3.c allocates each argv string with calloc, so the byte after the

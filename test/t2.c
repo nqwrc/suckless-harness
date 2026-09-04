@@ -45,14 +45,18 @@ int
 main(void)
 {
 	char *av[5];
+	char *orig[5];
+	int i;
 
 	/* simulates:  prog -f Y z   with each string separately allocated */
-	av[0] = dup_("prog");
-	av[1] = dup_("-f");
-	av[2] = dup_("Y");
-	av[3] = dup_("z");
-	av[4] = NULL;
+	orig[0] = av[0] = dup_("prog");
+	orig[1] = av[1] = dup_("-f");
+	orig[2] = av[2] = dup_("Y");
+	orig[3] = av[3] = dup_("z");
+	orig[4] = av[4] = NULL;
 
 	run(4, av);
+	for (i = 0; i < 4; i++)
+		free(orig[i]);
 	return 0;
 }

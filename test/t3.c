@@ -47,15 +47,19 @@ int
 main(void)
 {
 	char *av[5];
+	char *orig[5];
+	int i;
 
-	av[0] = pad_("prog");
-	av[1] = pad_("-f");
-	av[2] = pad_("Y");
-	av[3] = pad_("z");
-	av[4] = NULL;
+	orig[0] = av[0] = pad_("prog");
+	orig[1] = av[1] = pad_("-f");
+	orig[2] = av[2] = pad_("Y");
+	orig[3] = av[3] = pad_("z");
+	orig[4] = av[4] = NULL;
 
 	printf("expected: file=Y rest=1 : z\n");
 	printf("actual:   ");
 	run(4, av);
+	for (i = 0; i < 4; i++)
+		free(orig[i]);
 	return 0;
 }
