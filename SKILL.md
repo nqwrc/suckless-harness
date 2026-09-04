@@ -1076,8 +1076,6 @@ counts lines in files or stdin:
 
 char *argv0;
 
-static int csv = 0;
-
 static void
 usage(void)
 {
@@ -1085,7 +1083,7 @@ usage(void)
 }
 
 static void
-lc(FILE *fp, const char *fname)
+lc(FILE *fp, const char *fname, int csv)
 {
 	int c;
 	unsigned long n;
@@ -1107,6 +1105,7 @@ int
 main(int argc, char *argv[])
 {
 	FILE *fp;
+	int csv = 0;
 	int i;
 
 	ARGBEGIN {
@@ -1118,12 +1117,12 @@ main(int argc, char *argv[])
 	} ARGEND;
 
 	if (!argc) {
-		lc(stdin, "<stdin>");
+		lc(stdin, "<stdin>", csv);
 	} else {
 		for (i = 0; i < argc; i++) {
 			if (!(fp = fopen(argv[i], "r")))
 				die("fopen %s:", argv[i]);
-			lc(fp, argv[i]);
+			lc(fp, argv[i], csv);
 			fclose(fp);
 		}
 	}
