@@ -3,15 +3,9 @@
 #include <string.h>
 
 #include "arg.h"
+#include "t_setup.h"
 
 char *argv0;
-
-static void
-usage(void)
-{
-	fprintf(stderr, "usage\n");
-	exit(1);
-}
 
 static char *
 dup_(const char *s)
@@ -19,26 +13,6 @@ dup_(const char *s)
 	char *p = malloc(strlen(s) + 1);
 	memcpy(p, s, strlen(s) + 1);
 	return p;
-}
-
-static void
-run(int argc, char *argv[])
-{
-	char *file = NULL;
-	int i;
-
-	ARGBEGIN {
-	case 'f':
-		file = EARGF(usage());
-		break;
-	default:
-		usage();
-	} ARGEND;
-
-	printf("file=%s rest=%d", file ? file : "(null)", argc);
-	for (i = 0; i < argc; i++)
-		printf(" %s", argv[i]);
-	printf("\n");
 }
 
 int
@@ -53,6 +27,6 @@ main(void)
 	av[3] = dup_("z");
 	av[4] = NULL;
 
-	run(4, av);
+	run(4, av, 0);
 	return 0;
 }
