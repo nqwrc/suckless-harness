@@ -15,10 +15,8 @@ cd "$(dirname "$0")"
 here=$(pwd)
 
 CC=${CC:-cc}
-AWK=${AWK:-awk}
-MAKE=${MAKE:-make}
 
-for cmd in "$CC" "$AWK"; do
+for cmd in "$CC" awk; do
 	if ! command -v "$cmd" >/dev/null 2>&1; then
 		printf 'FAIL: required command "%s" not found\n' "$cmd" >&2
 		exit 1
@@ -38,9 +36,9 @@ note() { printf '\n== %s ==\n' "$1"; }
 bad()  { printf 'FAIL: %s\n' "$1"; fail=1; }
 
 note "extracting sources from SKILL.md"
-(cd build && "$AWK" -f ../extract.awk ../../SKILL.md)
+(cd build && awk -f ../extract.awk ../../SKILL.md)
 
-for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h; do
+for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h config.mk Makefile; do
 	[ -f "build/$f" ] || bad "SKILL.md produced no $f"
 done
 
@@ -132,6 +130,12 @@ note "drw.c syntax check (SKILL.md section 3.6)"
 $CC $WARN -I x11stub -I build -c build/drw.c -o build/drw.o
 printf '  ok (stub X11/Xft headers; not linked, needs a real X server)\n'
 
+note "util.c unit tests"
+$CC $WARN $FEAT -I build -o build/t_util t_util.c build/util.c
+out=$(./build/t_util)
+[ "$out" = "ok" ] || bad "util.c tests failed: got '$out'"
+printf '  ok (allocations and strdup)\n'
+
 note "Makefile + config.mk (SKILL.md section 4.1)"
 # Only GNU make is exercised. `include config.mk` is also BSD make syntax, but
 # no bmake is available here to prove it, so a non-GNU make is skipped rather
@@ -139,42 +143,21 @@ note "Makefile + config.mk (SKILL.md section 4.1)"
 # (which runs clean first). A dry run would prove nothing -- make -n never
 # reads a recipe body closely enough to fail on it.
 ok=0
-if ! command -v "$MAKE" >/dev/null 2>&1; then
+if ! command -v make >/dev/null 2>&1; then
 	printf '  skipped (no make on PATH)\n'
-elif ! "$MAKE" --version 2>/dev/null | grep -q GNU; then
+elif ! make --version 2>/dev/null | grep -q GNU; then
 	printf '  skipped (make is not GNU make; BSD make is untested here)\n'
 else
 	mkdir -p build/maketest
-	(cd build/maketest && "$AWK" '
-		/^```makefile$/ { inblk = 1; n = 0; next }
-		/^```$/ {
-			if (inblk) {
-				name = ""
-				if (buf[1] ~ /^VERSION = /)         name = "config.mk"
-				if (buf[1] ~ /^include config\.mk/) name = "Makefile"
-				if (name != "") {
-					for (i = 1; i <= n; i++)
-						print buf[i] > name
-					close(name)
-				}
-			}
-			inblk = 0
-			next
-		}
-		inblk { buf[++n] = $0 }
-	' ../../../SKILL.md)
 	ok=1
-	# a missing marker must FAIL cleanly, not abort the script under set -e
-	for f in config.mk Makefile; do
-		[ -f "build/maketest/$f" ] || { bad "SKILL.md produced no $f"; ok=0; }
-	done
-	for f in util.c util.h arg.h config.def.h lc.c; do
+	for f in config.mk Makefile util.c util.h arg.h config.def.h lc.c; do
 		[ -f "build/$f" ] || { bad "make section needs build/$f"; ok=0; }
 	done
 fi
 if [ "$ok" = 1 ]; then
 	# tool.c/SRC are the Makefile's generic placeholder name; the worked
 	# example (lc.c + util.c + arg.h) is real code that fits the same slot.
+	cp build/config.mk build/Makefile build/maketest/
 	cp build/util.c build/util.h build/arg.h build/config.def.h build/maketest/
 	cp build/lc.c build/maketest/tool.c
 	# Section 4.1 is a template, not a project: dist packages LICENSE,
@@ -185,7 +168,7 @@ if [ "$ok" = 1 ]; then
 		> build/maketest/README
 	printf '.TH TOOL 1 tool-VERSION\n.SH NAME\ntool \\- scaffold\n' \
 		> build/maketest/tool.1
-	mk() { (cd build/maketest && "$MAKE" CC="$CC" "$@"); }
+	mk() { (cd build/maketest && make CC="$CC" "$@"); }
 	ver=$(sed -n 's/^VERSION = //p' build/maketest/config.mk)
 	dest=$here/build/destdir
 	man=$dest/usr/local/share/man/man1/tool.1
