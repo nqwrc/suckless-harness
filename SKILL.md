@@ -262,6 +262,7 @@ Provide exactly these utility functions in every project:
 
 ```c
 /* util.c */
+/* See LICENSE file for copyright and license details. */
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -353,13 +354,9 @@ macro-based parser:
 ```c
 #include "arg.h"
 
-char *argv0;
+static void usage(void);
 
-static void
-usage(void)
-{
-	die("usage: %s [-v] [-f file]", argv0);
-}
+char *argv0;
 
 int
 main(int argc, char *argv[])
@@ -381,6 +378,12 @@ main(int argc, char *argv[])
 		usage();
 
 	return 0;
+}
+
+static void
+usage(void)
+{
+	die("usage: %s [-v] [-f file]", argv0);
 }
 ```
 
@@ -1074,34 +1077,12 @@ counts lines in files or stdin:
 #include "arg.h"
 #include "util.h"
 
+static void lc(FILE *fp, const char *fname);
+static void usage(void);
+
 char *argv0;
 
 static int csv = 0;
-
-static void
-usage(void)
-{
-	die("usage: %s [-c] [file ...]", argv0);
-}
-
-static void
-lc(FILE *fp, const char *fname)
-{
-	int c;
-	unsigned long n;
-
-	n = 0;
-	while ((c = fgetc(fp)) != EOF)
-		if (c == '\n')
-			n++;
-	if (ferror(fp))
-		die("read %s:", fname);
-
-	if (csv)
-		printf("%lu,%s\n", n, fname);
-	else
-		printf("%lu %s\n", n, fname);
-}
 
 int
 main(int argc, char *argv[])
@@ -1132,6 +1113,31 @@ main(int argc, char *argv[])
 		die("stdout:");
 
 	return 0;
+}
+
+static void
+lc(FILE *fp, const char *fname)
+{
+	int c;
+	unsigned long n;
+
+	n = 0;
+	while ((c = fgetc(fp)) != EOF)
+		if (c == '\n')
+			n++;
+	if (ferror(fp))
+		die("read %s:", fname);
+
+	if (csv)
+		printf("%lu,%s\n", n, fname);
+	else
+		printf("%lu %s\n", n, fname);
+}
+
+static void
+usage(void)
+{
+	die("usage: %s [-c] [file ...]", argv0);
 }
 ```
 
