@@ -130,6 +130,12 @@ note "drw.c syntax check (SKILL.md section 3.6)"
 $CC $WARN -I x11stub -I build -c build/drw.c -o build/drw.o
 printf '  ok (stub X11/Xft headers; not linked, needs a real X server)\n'
 
+note "util.c unit tests"
+$CC $WARN $FEAT -I build -o build/t_util t_util.c build/util.c
+out=$(./build/t_util)
+[ "$out" = "ok" ] || bad "util.c tests failed: got '$out'"
+printf '  ok (allocations and strdup)\n'
+
 note "Makefile + config.mk (SKILL.md section 4.1)"
 # Only GNU make is exercised. `include config.mk` is also BSD make syntax, but
 # no bmake is available here to prove it, so a non-GNU make is skipped rather
