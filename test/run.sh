@@ -60,15 +60,15 @@ else
 fi
 
 note "arg.h option matrix (SKILL.md section 3.4)"
-$CC $WARN -I build -o build/t t.c
+$CC $WARN -I build -o build/t_arg t_arg.c
 for a in "-vfX" "-f Y z" "-v" "-- -x" "-f FILE t1 t2" "-vf Y" "a b" "-"; do
-	printf '  %-16s -> %s\n' "$a" "$(./build/t $a)"
+	printf '  %-16s -> %s\n' "$a" "$(./build/t_arg $a)"
 done
 printf '  %-16s -> ' "-f (no operand)"
-./build/t -f 2>&1 || true
+./build/t_arg -f 2>&1 || true
 
 expect() {
-	got=$(./build/t $1)
+	got=$(./build/t_arg $1)
 	[ "$got" = "$2" ] || bad "'$1': got '$got', want '$2'"
 }
 expect "-vfX"          "v=1 file=X rest=0"
@@ -79,7 +79,7 @@ expect "-"             "v=0 file=(null) rest=1 -"
 expect "a b"           "v=0 file=(null) rest=2 a b"
 
 note "operand loss check: shipped vs upstream vs broken"
-# t3.c allocates each argv string with calloc, so the byte after the
+# t_arg_pad.c allocates each argv string with calloc, so the byte after the
 # terminator is zero -- the case a normal contiguous stack hides.
 for v in shipped upstream broken; do
 	case $v in
@@ -87,8 +87,8 @@ for v in shipped upstream broken; do
 	upstream) inc="upstream" ;;
 	broken)   inc="broken" ;;
 	esac
-	$CC $WARN -I "$inc" -o "build/t3-$v" t3.c
-	got=$(./build/t3-$v | sed -n 's/^actual: *//p')
+	$CC $WARN -I "$inc" -o "build/t_arg_pad-$v" t_arg_pad.c
+	got=$(./build/t_arg_pad-$v | sed -n 's/^actual: *//p')
 	printf '  %-9s -> %s\n' "$v" "$got"
 	case $v in
 	broken)
@@ -110,8 +110,8 @@ if printf 'int main(void){return 0;}\n' | \
 		upstream) inc="upstream" ;;
 		broken)   inc="broken" ;;
 		esac
-		$CC $WARN -I "$inc" -fsanitize=address -g -o "build/t2-$v" t2.c
-		if ./build/t2-$v >/dev/null 2>"build/asan-$v.log"; then
+		$CC $WARN -I "$inc" -fsanitize=address -g -o "build/t_arg_asan-$v" t_arg_asan.c
+		if ./build/t_arg_asan-$v >/dev/null 2>"build/asan-$v.log"; then
 			printf '  %-9s -> clean\n' "$v"
 			[ "$v" = shipped ] || \
 				printf '             (expected an overflow here)\n'
