@@ -48,6 +48,11 @@ out=$(printf 'a\nb\nc\n' | ./build/lc)
 [ "$out" = "3 <stdin>" ] || bad "lc stdin: got '$out', want '3 <stdin>'"
 printf '  stdin      -> %s\n' "$out"
 
+awk 'BEGIN { for (i = 1; i <= 10000; i++) print "generated line " i }' > build/testdata.txt
+out=$(./build/lc build/testdata.txt)
+[ "$out" = "10000 build/testdata.txt" ] || bad "lc file: got '$out', want '10000 build/testdata.txt'"
+printf '  generated  -> %s\n' "$out"
+
 # die() colon trick: message, then strerror, then exit 1
 if err=$(./build/lc no/such/file 2>&1); then
 	bad "lc should exit nonzero on a missing file"

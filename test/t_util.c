@@ -45,6 +45,20 @@ main(void)
 	}
 	free(s);
 
+	/* estrdup with programmatically generated strings */
+	for (i = 1; i < 2048; i *= 2) {
+		char *gen = emalloc(i + 1);
+		memset(gen, 'x', i);
+		gen[i] = '\0';
+		s = estrdup(gen);
+		if (strcmp(s, gen) != 0) {
+			fprintf(stderr, "estrdup: failed on string length %d\n", i);
+			return 1;
+		}
+		free(s);
+		free(gen);
+	}
+
 	printf("ok\n");
 	return 0;
 }
