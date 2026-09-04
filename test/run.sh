@@ -38,7 +38,7 @@ bad()  { printf 'FAIL: %s\n' "$1"; fail=1; }
 note "extracting sources from SKILL.md"
 (cd build && awk -f ../extract.awk ../../SKILL.md)
 
-for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h; do
+for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h config.mk Makefile; do
 	[ -f "build/$f" ] || bad "SKILL.md produced no $f"
 done
 
@@ -149,36 +149,15 @@ elif ! make --version 2>/dev/null | grep -q GNU; then
 	printf '  skipped (make is not GNU make; BSD make is untested here)\n'
 else
 	mkdir -p build/maketest
-	(cd build/maketest && awk '
-		/^```makefile$/ { inblk = 1; n = 0; next }
-		/^```$/ {
-			if (inblk) {
-				name = ""
-				if (buf[1] ~ /^VERSION = /)         name = "config.mk"
-				if (buf[1] ~ /^include config\.mk/) name = "Makefile"
-				if (name != "") {
-					for (i = 1; i <= n; i++)
-						print buf[i] > name
-					close(name)
-				}
-			}
-			inblk = 0
-			next
-		}
-		inblk { buf[++n] = $0 }
-	' ../../../SKILL.md)
 	ok=1
-	# a missing marker must FAIL cleanly, not abort the script under set -e
-	for f in config.mk Makefile; do
-		[ -f "build/maketest/$f" ] || { bad "SKILL.md produced no $f"; ok=0; }
-	done
-	for f in util.c util.h arg.h config.def.h lc.c; do
+	for f in config.mk Makefile util.c util.h arg.h config.def.h lc.c; do
 		[ -f "build/$f" ] || { bad "make section needs build/$f"; ok=0; }
 	done
 fi
 if [ "$ok" = 1 ]; then
 	# tool.c/SRC are the Makefile's generic placeholder name; the worked
 	# example (lc.c + util.c + arg.h) is real code that fits the same slot.
+	cp build/config.mk build/Makefile build/maketest/
 	cp build/util.c build/util.h build/arg.h build/config.def.h build/maketest/
 	cp build/lc.c build/maketest/tool.c
 	# Section 4.1 is a template, not a project: dist packages LICENSE,
