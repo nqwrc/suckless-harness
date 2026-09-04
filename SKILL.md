@@ -1076,15 +1076,13 @@ counts lines in files or stdin:
 
 char *argv0;
 
-static int csv = 0;
-
 static void
 usage(void)
 {
 	die("usage: %s [-c] [file ...]", argv0);
 }
 
-static void
+static unsigned long
 lc(FILE *fp, const char *fname)
 {
 	int c;
@@ -1097,10 +1095,7 @@ lc(FILE *fp, const char *fname)
 	if (ferror(fp))
 		die("read %s:", fname);
 
-	if (csv)
-		printf("%lu,%s\n", n, fname);
-	else
-		printf("%lu %s\n", n, fname);
+	return n;
 }
 
 int
@@ -1108,6 +1103,8 @@ main(int argc, char *argv[])
 {
 	FILE *fp;
 	int i;
+	int csv = 0;
+	unsigned long n;
 
 	ARGBEGIN {
 	case 'c':
@@ -1118,12 +1115,20 @@ main(int argc, char *argv[])
 	} ARGEND;
 
 	if (!argc) {
-		lc(stdin, "<stdin>");
+		n = lc(stdin, "<stdin>");
+		if (csv)
+			printf("%lu,%s\n", n, "<stdin>");
+		else
+			printf("%lu %s\n", n, "<stdin>");
 	} else {
 		for (i = 0; i < argc; i++) {
 			if (!(fp = fopen(argv[i], "r")))
 				die("fopen %s:", argv[i]);
-			lc(fp, argv[i]);
+			n = lc(fp, argv[i]);
+			if (csv)
+				printf("%lu,%s\n", n, argv[i]);
+			else
+				printf("%lu %s\n", n, argv[i]);
 			fclose(fp);
 		}
 	}
