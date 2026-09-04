@@ -7,6 +7,8 @@
 # identified by content. Every other C block in the document is an isolated
 # fragment and is skipped.
 
+{ sub(/\r$/, "") }
+
 /^```(c|makefile)$/ { inblk = 1; n = 0; next }
 
 /^```$/ {
