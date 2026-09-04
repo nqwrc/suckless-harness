@@ -1,6 +1,31 @@
+# Build artifacts
 test/build/
 *.o
+*.a
+*.so
 *.exe
+*.out
 *.pdb
 *.ilk
-NOTES-review-log.it.md
+
+# Core dumps
+core
+core.*
+
+# IDE and Editor
+.vscode/
+.idea/
+.clangd/
+.ccls-cache/
+compile_commands.json
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.direnv/
