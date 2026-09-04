@@ -35,14 +35,14 @@ fail=0
 note() { printf '\n== %s ==\n' "$1"; }
 bad()  { printf 'FAIL: %s\n' "$1"; fail=1; }
 
-note "extracting sources from SKILL.md"
+note "testing awk script extracts all required C blocks from SKILL.md"
 (cd build && awk -f ../extract.awk ../../SKILL.md)
 
 for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h config.mk Makefile; do
 	[ -f "build/$f" ] || bad "SKILL.md produced no $f"
 done
 
-note "worked example (SKILL.md section 11)"
+note "compiling worked example (lc.c) and running with stdin, expecting line count 3"
 $CC $WARN $FEAT -DVERSION='"test"' -o build/lc build/lc.c build/util.c
 out=$(printf 'a\nb\nc\n' | ./build/lc)
 [ "$out" = "3 <stdin>" ] || bad "lc stdin: got '$out', want '3 <stdin>'"
@@ -59,7 +59,7 @@ else
 	esac
 fi
 
-note "arg.h option matrix (SKILL.md section 3.4)"
+note "testing arg.h option parsing matrix, expecting correct parsed arguments"
 $CC $WARN -I build -o build/t t.c
 for a in "-vfX" "-f Y z" "-v" "-- -x" "-f FILE t1 t2" "-vf Y" "a b" "-"; do
 	printf '  %-16s -> %s\n' "$a" "$(./build/t $a)"
@@ -78,7 +78,7 @@ expect "-- -x"         "v=0 file=(null) rest=1 -x"
 expect "-"             "v=0 file=(null) rest=1 -"
 expect "a b"           "v=0 file=(null) rest=2 a b"
 
-note "operand loss check: shipped vs upstream vs broken"
+note "testing arg.h operand retention on shipped, upstream, and broken variants, expecting no positional arguments dropped"
 # t3.c allocates each argv string with calloc, so the byte after the
 # terminator is zero -- the case a normal contiguous stack hides.
 for v in shipped upstream broken; do
@@ -100,7 +100,7 @@ for v in shipped upstream broken; do
 	esac
 done
 
-note "AddressSanitizer: out-of-bounds read on a heap argv"
+note "testing arg.h with AddressSanitizer on heap-allocated argv, expecting clean run without out-of-bounds reads"
 if printf 'int main(void){return 0;}\n' | \
    $CC -fsanitize=address -x c -o build/asanprobe - 2>/dev/null && \
    ./build/asanprobe >/dev/null 2>&1; then
@@ -126,17 +126,17 @@ else
 	printf '  skipped (no working -fsanitize=address)\n'
 fi
 
-note "drw.c syntax check (SKILL.md section 3.6)"
+note "compiling drw.c with stub headers, expecting successful syntax check"
 $CC $WARN -I x11stub -I build -c build/drw.c -o build/drw.o
 printf '  ok (stub X11/Xft headers; not linked, needs a real X server)\n'
 
-note "util.c unit tests"
+note "running util.c unit tests, expecting 'ok' output for allocations and strdup"
 $CC $WARN $FEAT -I build -o build/t_util t_util.c build/util.c
 out=$(./build/t_util)
 [ "$out" = "ok" ] || bad "util.c tests failed: got '$out'"
 printf '  ok (allocations and strdup)\n'
 
-note "Makefile + config.mk (SKILL.md section 4.1)"
+note "testing GNU make targets (all, install, uninstall, dist) using shipped Makefile, expecting successful builds and packaging"
 # Only GNU make is exercised. `include config.mk` is also BSD make syntax, but
 # no bmake is available here to prove it, so a non-GNU make is skipped rather
 # than guessed at. Every target is run for real: all, install, uninstall, dist
