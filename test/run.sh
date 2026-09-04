@@ -134,7 +134,17 @@ note "util.c unit tests"
 $CC $WARN $FEAT -I build -o build/t_util t_util.c build/util.c
 out=$(./build/t_util)
 [ "$out" = "ok" ] || bad "util.c tests failed: got '$out'"
-printf '  ok (allocations and strdup)\n'
+
+out=$(./build/t_util die 2>&1 || true)
+case $out in
+"test: "*) : ;;
+*) bad "die with colon: got '$out'" ;;
+esac
+
+out=$(./build/t_util die_no_colon 2>&1 || true)
+[ "$out" = "test" ] || bad "die without colon: got '$out'"
+
+printf '  ok (allocations, strdup, die)\n'
 
 note "Makefile + config.mk (SKILL.md section 4.1)"
 # Only GNU make is exercised. `include config.mk` is also BSD make syntax, but
