@@ -136,6 +136,16 @@ out=$(./build/t_util)
 [ "$out" = "ok" ] || bad "util.c tests failed: got '$out'"
 printf '  ok (allocations and strdup)\n'
 
+note "estrtol invalid input validation"
+$CC $WARN $FEAT -I build -o build/t_estrtol t_estrtol.c build/util.c
+for arg in "" "123a" "99999999999999999999999999999999"; do
+	if ./build/t_estrtol "$arg" >/dev/null 2>&1; then
+		bad "estrtol should reject '$arg'"
+	else
+		printf "  rejected '%s' (ok)\n" "$arg"
+	fi
+done
+
 note "Makefile + config.mk (SKILL.md section 4.1)"
 # Only GNU make is exercised. `include config.mk` is also BSD make syntax, but
 # no bmake is available here to prove it, so a non-GNU make is skipped rather
