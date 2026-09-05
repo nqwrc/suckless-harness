@@ -14,9 +14,14 @@ usage(void)
 }
 
 static char *
-dup_(const char *s)
+copystr(const char *s)
 {
-	char *p = malloc(strlen(s) + 1);
+	char *p;
+	p = malloc(strlen(s) + 1);
+	if (p == NULL) {
+		perror("malloc");
+		exit(1);
+	}
 	memcpy(p, s, strlen(s) + 1);
 	return p;
 }
@@ -24,8 +29,10 @@ dup_(const char *s)
 static void
 run(int argc, char *argv[])
 {
-	char *file = NULL;
+	char *file;
 	int i;
+
+	file = NULL;
 
 	ARGBEGIN {
 	case 'f':
@@ -47,10 +54,10 @@ main(void)
 	char *av[5];
 
 	/* simulates:  prog -f Y z   with each string separately allocated */
-	av[0] = dup_("prog");
-	av[1] = dup_("-f");
-	av[2] = dup_("Y");
-	av[3] = dup_("z");
+	av[0] = copystr("prog");
+	av[1] = copystr("-f");
+	av[2] = copystr("Y");
+	av[3] = copystr("z");
 	av[4] = NULL;
 
 	run(4, av);
