@@ -16,9 +16,15 @@ usage(void)
 static char *
 pad_(const char *s)
 {
+	char *p;
+
 	/* zero-filled slack after the NUL: what a hardened/zeroing
 	 * allocator or a differently-laid-out stack would give you */
-	char *p = calloc(1, 16);
+	p = calloc(1, 16);
+	if (!p) {
+		perror("calloc");
+		exit(1);
+	}
 	memcpy(p, s, strlen(s));
 	return p;
 }

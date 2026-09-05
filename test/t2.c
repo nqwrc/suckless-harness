@@ -16,7 +16,13 @@ usage(void)
 static char *
 dup_(const char *s)
 {
-	char *p = malloc(strlen(s) + 1);
+	char *p;
+
+	p = malloc(strlen(s) + 1);
+	if (!p) {
+		perror("malloc");
+		exit(1);
+	}
 	memcpy(p, s, strlen(s) + 1);
 	return p;
 }
