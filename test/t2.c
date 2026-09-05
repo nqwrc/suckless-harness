@@ -54,5 +54,9 @@ main(void)
 	av[4] = NULL;
 
 	run(4, av);
+	free(av[0]);
+	free(av[1]);
+	free(av[2]);
+	free(av[3]);
 	return 0;
 }
