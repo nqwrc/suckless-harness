@@ -57,5 +57,9 @@ main(void)
 	printf("expected: file=Y rest=1 : z\n");
 	printf("actual:   ");
 	run(4, av);
+	free(av[0]);
+	free(av[1]);
+	free(av[2]);
+	free(av[3]);
 	return 0;
 }

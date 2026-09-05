@@ -23,7 +23,7 @@ for cmd in "$CC" awk; do
 	fi
 done
 
-WARN="-std=c99 -pedantic -Wall -Wextra"
+WARN="-std=c99 -pedantic -Wall -Wextra -Os"
 FEAT="-D_POSIX_C_SOURCE=200809L"
 # Windows CRT calls fopen/strdup "deprecated"; ignored elsewhere.
 FEAT="$FEAT -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS"
