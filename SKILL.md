@@ -269,6 +269,7 @@ Provide exactly these utility functions in every project:
 
 #include "util.h"
 
+/* Prints error message to stderr and exits with status 1. */
 void
 die(const char *fmt, ...)
 {
@@ -288,6 +289,7 @@ die(const char *fmt, ...)
 	exit(1);
 }
 
+/* Allocates zero-initialized memory array, dying on failure. */
 void *
 ecalloc(size_t nmemb, size_t size)
 {
@@ -298,6 +300,7 @@ ecalloc(size_t nmemb, size_t size)
 	return p;
 }
 
+/* Allocates uninitialized memory, dying on failure. */
 void *
 emalloc(size_t size)
 {
@@ -308,6 +311,7 @@ emalloc(size_t size)
 	return p;
 }
 
+/* Reallocates memory block, dying on failure. */
 void *
 erealloc(void *p, size_t size)
 {
@@ -316,6 +320,7 @@ erealloc(void *p, size_t size)
 	return p;
 }
 
+/* Duplicates a string, dying on failure. */
 char *
 estrdup(const char *s)
 {
@@ -588,6 +593,7 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
 #include "drw.h"
 #include "util.h"
 
+/* Initializes a new drawing context and allocates the backing pixmap. */
 Drw *
 drw_create(Display *dpy, int screen, Window root, unsigned int w, unsigned int h)
 {
@@ -609,6 +615,7 @@ drw_create(Display *dpy, int screen, Window root, unsigned int w, unsigned int h
 	return drw;
 }
 
+/* Resizes the drawing context's backing pixmap. */
 void
 drw_resize(Drw *drw, unsigned int w, unsigned int h)
 {
@@ -619,6 +626,7 @@ drw_resize(Drw *drw, unsigned int w, unsigned int h)
 	drw->drawable = XCreatePixmap(drw->dpy, drw->root, w ? w : 1, h ? h : 1, drw->depth);
 }
 
+/* Frees all resources associated with the drawing context. */
 void
 drw_free(Drw *drw)
 {
@@ -628,12 +636,14 @@ drw_free(Drw *drw)
 	free(drw);
 }
 
+/* Sets the active color scheme for drawing operations. */
 void
 drw_setscheme(Drw *drw, Clr *scm)
 {
 	drw->scheme = scm;
 }
 
+/* Draws a rectangle on the backing pixmap using the active scheme. */
 void
 drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled, int invert)
 {
@@ -647,6 +657,7 @@ drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled, int
 		XDrawRectangle(drw->dpy, drw->drawable, drw->gc, x, y, w - 1, h - 1);
 }
 
+/* Copies the backing pixmap to the target window and flushes the display. */
 void
 drw_map(Drw *drw, Window win, int x, int y, unsigned int w, unsigned int h)
 {
