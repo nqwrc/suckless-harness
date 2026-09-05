@@ -131,8 +131,8 @@ $CC $WARN -I x11stub -I build -c build/drw.c -o build/drw.o
 printf '  ok (stub X11/Xft headers; not linked, needs a real X server)\n'
 
 note "util.c unit tests"
-$CC $WARN $FEAT -I build -o build/t_util t_util.c build/util.c
-out=$(./build/t_util)
+$CC $WARN $FEAT -I build -o build/t4 t4.c build/util.c
+out=$(./build/t4)
 [ "$out" = "ok" ] || bad "util.c tests failed: got '$out'"
 printf '  ok (allocations and strdup)\n'
 
