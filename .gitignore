@@ -1,6 +1,13 @@
 test/build/
 *.o
+*.a
+*.so
 *.exe
 *.pdb
 *.ilk
+config.h
+.vscode/
+.idea/
+compile_commands.json
+.DS_Store
 NOTES-review-log.it.md
