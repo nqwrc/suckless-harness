@@ -57,5 +57,11 @@ main(void)
 	printf("expected: file=Y rest=1 : z\n");
 	printf("actual:   ");
 	run(4, av);
+
+	if (fflush(stdout) == EOF || ferror(stdout)) {
+		fprintf(stderr, "stdout: error\n");
+		exit(1);
+	}
+
 	return 0;
 }
