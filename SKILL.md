@@ -1085,15 +1085,17 @@ usage(void)
 static void
 lc(FILE *fp, const char *fname, int csv)
 {
-	int c;
+	char buf[BUFSIZ];
+	size_t nread, i;
 	unsigned long n;
 
 	n = 0;
-	while ((c = fgetc(fp)) != EOF)
-		if (c == '\n')
-			n++;
+	while ((nread = fread(buf, 1, sizeof(buf), fp)) > 0)
+		for (i = 0; i < nread; i++)
+			if (buf[i] == '\n')
+				n++;
 	if (ferror(fp))
-		die("read %s:", fname);
+		die("fread %s:", fname);
 
 	if (csv)
 		printf("%lu,%s\n", n, fname);
