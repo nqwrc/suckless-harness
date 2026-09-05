@@ -45,6 +45,7 @@ int
 main(void)
 {
 	char *av[5];
+	int i;
 
 	/* simulates:  prog -f Y z   with each string separately allocated */
 	av[0] = dup_("prog");
@@ -54,5 +55,9 @@ main(void)
 	av[4] = NULL;
 
 	run(4, av);
+
+	for (i = 0; i < 4; i++)
+		free(av[i]);
+
 	return 0;
 }

@@ -47,6 +47,7 @@ int
 main(void)
 {
 	char *av[5];
+	int i;
 
 	av[0] = pad_("prog");
 	av[1] = pad_("-f");
@@ -57,5 +58,9 @@ main(void)
 	printf("expected: file=Y rest=1 : z\n");
 	printf("actual:   ");
 	run(4, av);
+
+	for (i = 0; i < 4; i++)
+		free(av[i]);
+
 	return 0;
 }
