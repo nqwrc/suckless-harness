@@ -1118,15 +1118,17 @@ main(int argc, char *argv[])
 
 	if (!argc) {
 		lc(stdin, "<stdin>", csv);
-	} else {
-		for (i = 0; i < argc; i++) {
-			if (!(fp = fopen(argv[i], "r")))
-				die("fopen %s:", argv[i]);
-			lc(fp, argv[i], csv);
-			fclose(fp);
-		}
+		goto out;
 	}
 
+	for (i = 0; i < argc; i++) {
+		if (!(fp = fopen(argv[i], "r")))
+			die("fopen %s:", argv[i]);
+		lc(fp, argv[i], csv);
+		fclose(fp);
+	}
+
+out:
 	if (fflush(stdout) == EOF || ferror(stdout))
 		die("stdout:");
 
