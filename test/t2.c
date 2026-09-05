@@ -17,6 +17,10 @@ static char *
 dup_(const char *s)
 {
 	char *p = malloc(strlen(s) + 1);
+	if (!p) {
+		perror("malloc");
+		exit(1);
+	}
 	memcpy(p, s, strlen(s) + 1);
 	return p;
 }
@@ -45,8 +49,16 @@ int
 main(void)
 {
 	char *av[5];
+	int i;
 
-	/* simulates:  prog -f Y z   with each string separately allocated */
+	/* simulates:  prog -f Y z   with each string separately allocated.
+	 *
+	 * WHY: Normal argv strings sit contiguously on the stack. The upstream
+	 * arg.h parser bug reads past the NUL terminator of the operand. If
+	 * strings are contiguous, it reads into the next string, which is nonzero,
+	 * hiding the bug. By heap-allocating each string, we guarantee AddressSanitizer
+	 * boundary metadata surrounds them, turning that silent read into a hard crash.
+	 */
 	av[0] = dup_("prog");
 	av[1] = dup_("-f");
 	av[2] = dup_("Y");
@@ -54,5 +66,9 @@ main(void)
 	av[4] = NULL;
 
 	run(4, av);
+
+	for (i = 0; i < 4; i++)
+		free(av[i]);
+
 	return 0;
 }
