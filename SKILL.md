@@ -1134,6 +1134,42 @@ main(int argc, char *argv[])
 }
 ```
 
+```roff
+.TH LC 1 "January 2026" "lc VERSION"
+.SH NAME
+lc \- count lines in files or standard input
+
+.SH SYNOPSIS
+.B lc
+[\fB\-c\fR] [\fIfile ...\fR]
+
+.SH DESCRIPTION
+.B lc
+reads each file (or standard input if no file is given), counts the number of newline characters, and prints the result to standard output.
+
+.SH OPTIONS
+.TP
+.B \-c
+Output in CSV format: \fIcount\fR,\fIfilename\fR instead of \fIcount\fR \fIfilename\fR.
+
+.SH ENVIRONMENT
+None.
+
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+Failure (e.g., error reading file).
+
+.SH BUGS
+None known. Report to <email@example.com>.
+
+.SH AUTHORS
+Author Name <email@example.com>
+```
+
 Note: every rule is followed. Variables at top. `/* */` comments. Multi-line
 function signatures. `die()` with colon trick. Reads stdin or file args.
 No `--help`. Under 50 lines. Does one thing.
