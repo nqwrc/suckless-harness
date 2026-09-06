@@ -1,0 +1,24 @@
+.TH SUCKLESS-HARNESS 7 "September 2023" "suckless-harness 1.2"
+.SH NAME
+suckless-harness \- development setup and contribution guidelines
+.SH DESCRIPTION
+The \fBsuckless-harness\fR repository enforces suckless.org software engineering
+principles. This document describes the environment setup and verification
+process for contributing.
+.SH PREREQUISITES
+A C99 compiler (cc), awk, and GNU make.
+.SH ENVIRONMENT SETUP
+No external dependencies or runtime environments are required.
+The primary artifact is \fBSKILL.md\fR.
+.SH BUILD AND VERIFICATION
+Run the test suite before submitting changes:
+.PP
+.RS
+ASAN_OPTIONS=detect_leaks=0 sh test/run.sh
+.RE
+.PP
+This extracts every C block from SKILL.md, compiles them, runs the
+worked example, and executes syntax and memory checks.
+.SH SUBMITTING CHANGES
+Keep changes minimal, focused, and free of bloat. Ensure the test suite
+passes. Submit changes via a pull request.
