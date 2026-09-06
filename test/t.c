@@ -16,9 +16,12 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
-	char *file = NULL;
-	int v = 0;
+	char *file;
+	int v;
 	int i;
+
+	file = NULL;
+	v = 0;
 
 	ARGBEGIN {
 	case 'f':
