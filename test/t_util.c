@@ -10,7 +10,7 @@ main(void)
 	char *p, *q, *s;
 	int i;
 
-	/* emalloc */
+	/* test emalloc: allocate 10 bytes, expect successful write to boundaries */
 	p = emalloc(10);
 	memset(p, 'A', 10);
 	if (p[0] != 'A' || p[9] != 'A') {
@@ -18,7 +18,7 @@ main(void)
 		return 1;
 	}
 
-	/* erealloc */
+	/* test erealloc: reallocate to 20 bytes, expect original memory preserved and successful write to new boundaries */
 	p = erealloc(p, 20);
 	memset(p + 10, 'B', 10);
 	if (p[0] != 'A' || p[9] != 'A' || p[10] != 'B' || p[19] != 'B') {
@@ -27,7 +27,7 @@ main(void)
 	}
 	free(p);
 
-	/* ecalloc */
+	/* test ecalloc: allocate 5 elements of 4 bytes, expect all 20 bytes are zeroed */
 	q = ecalloc(5, 4);
 	for (i = 0; i < 20; i++) {
 		if (q[i] != '\0') {
@@ -37,7 +37,7 @@ main(void)
 	}
 	free(q);
 
-	/* estrdup */
+	/* test estrdup: duplicate a string, expect identical contents */
 	s = estrdup("test string");
 	if (strcmp(s, "test string") != 0) {
 		fprintf(stderr, "estrdup: failed to copy string\n");
