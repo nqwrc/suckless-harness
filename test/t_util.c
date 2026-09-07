@@ -22,6 +22,7 @@ main(int argc, char *argv[])
 	memset(p, 'A', 10);
 	if (p[0] != 'A' || p[9] != 'A') {
 		fprintf(stderr, "emalloc: failed to write memory\n");
+		free(p);
 		return 1;
 	}
 
@@ -30,6 +31,7 @@ main(int argc, char *argv[])
 	memset(p + 10, 'B', 10);
 	if (p[0] != 'A' || p[9] != 'A' || p[10] != 'B' || p[19] != 'B') {
 		fprintf(stderr, "erealloc: failed to reallocate or preserve memory\n");
+		free(p);
 		return 1;
 	}
 	free(p);
@@ -39,6 +41,7 @@ main(int argc, char *argv[])
 	for (i = 0; i < 20; i++) {
 		if (q[i] != '\0') {
 			fprintf(stderr, "ecalloc: did not zero memory\n");
+			free(q);
 			return 1;
 		}
 	}
@@ -48,6 +51,7 @@ main(int argc, char *argv[])
 	s = estrdup("test string");
 	if (strcmp(s, "test string") != 0) {
 		fprintf(stderr, "estrdup: failed to copy string\n");
+		free(s);
 		return 1;
 	}
 	free(s);
