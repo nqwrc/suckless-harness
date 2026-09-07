@@ -31,9 +31,7 @@ FEAT="$FEAT -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS"
 rm -rf build
 mkdir build
 
-fail=0
-note() { printf '\n== %s ==\n' "$1"; }
-bad()  { printf 'FAIL: %s\n' "$1"; fail=1; }
+. "$here/common.sh"
 
 sh "$here/ws_test.sh" || fail=1
 
