@@ -331,6 +331,11 @@ estrdup(const char *s)
 `strerror(errno)` via `perror(NULL)`. So `die("open:")` prints
 `open: No such file or directory`.
 
+Error messages must be extremely terse, usually lowercase, and name only the
+failing function or syscall (e.g., `die("malloc:");`). Reject requests to add
+verbose context, capitalization, or user-friendly exception messages as they
+are considered bloat.
+
 The `fmt[0] &&` guard is **required**: without it, an empty format string makes
 `fmt[strlen(fmt) - 1]` read `fmt[-1]`, which is undefined behaviour.
 
@@ -942,6 +947,7 @@ just being difficult.
 
 ### 7.5 Patterns & Anti-Patterns
 
+- ❌ Verbose error messages, custom error codes, or user-friendly exception handling (use terse `die()` and exit `1`)
 - ❌ Object-Oriented Programming (class hierarchies, inheritance, polymorphism)
 - ❌ Design Patterns (Factory, Singleton, Observer — all add abstraction layers)
 - ❌ Plugin architectures (dlopen/dlsym dynamic loading for features)
@@ -1022,7 +1028,7 @@ Before presenting ANY code to the user, verify against this checklist:
 - [ ] Tabs for indentation, spaces for alignment?
 - [ ] All file-local functions declared `static`?
 - [ ] Allocation wrappers used (`emalloc`, `ecalloc`, `erealloc`, `estrdup`)? No scattered NULL checks?
-- [ ] Error handling via `die()` with colon trick, including the `fmt[0]` guard?
+- [ ] Error handling via `die()` with colon trick, including the `fmt[0]` guard? Are messages terse and lowercase?
 - [ ] `arg.h` macros reproduced verbatim, with every subscript intact?
 - [ ] `ARGEND` branches on `argused_` alone — no re-read of `argv[0][i_ + 1]`?
 - [ ] No runtime config parser? Using `config.h`?
