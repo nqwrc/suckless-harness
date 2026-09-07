@@ -48,6 +48,16 @@ out=$(printf 'a\nb\nc\n' | ./build/lc)
 [ "$out" = "3 <stdin>" ] || bad "lc stdin: got '$out', want '3 <stdin>'"
 printf '  stdin      -> %s\n' "$out"
 
+printf 'one\n' > build/f1.txt
+printf 'two\nthree\n' > build/f2.txt
+out=$(./build/lc -c build/f1.txt build/f2.txt)
+expected=$(printf '1,build/f1.txt\n2,build/f2.txt')
+if [ "$out" != "$expected" ]; then
+	bad "lc files+csv: got '$out', want '$expected'"
+else
+	printf '  files+csv  -> ok\n'
+fi
+
 # die() colon trick: message, then strerror, then exit 1
 if err=$(./build/lc no/such/file 2>&1); then
 	bad "lc should exit nonzero on a missing file"
