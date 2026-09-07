@@ -19,6 +19,10 @@ pad_(const char *s)
 	/* zero-filled slack after the NUL: what a hardened/zeroing
 	 * allocator or a differently-laid-out stack would give you */
 	char *p = calloc(1, 16);
+	if (!p) {
+		perror("calloc");
+		exit(1);
+	}
 	memcpy(p, s, strlen(s));
 	return p;
 }
@@ -57,5 +61,11 @@ main(void)
 	printf("expected: file=Y rest=1 : z\n");
 	printf("actual:   ");
 	run(4, av);
+
+	if (fflush(stdout) == EOF || ferror(stdout)) {
+		perror("stdout");
+		exit(1);
+	}
+
 	return 0;
 }

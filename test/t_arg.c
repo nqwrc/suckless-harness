@@ -35,5 +35,11 @@ main(int argc, char *argv[])
 	for (i = 0; i < argc; i++)
 		printf(" %s", argv[i]);
 	printf("\n");
+
+	if (fflush(stdout) == EOF || ferror(stdout)) {
+		perror("stdout");
+		exit(1);
+	}
+
 	return 0;
 }

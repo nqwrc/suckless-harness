@@ -17,6 +17,10 @@ static char *
 dup_(const char *s)
 {
 	char *p = malloc(strlen(s) + 1);
+	if (!p) {
+		perror("malloc");
+		exit(1);
+	}
 	memcpy(p, s, strlen(s) + 1);
 	return p;
 }
@@ -54,5 +58,11 @@ main(void)
 	av[4] = NULL;
 
 	run(4, av);
+
+	if (fflush(stdout) == EOF || ferror(stdout)) {
+		perror("stdout");
+		exit(1);
+	}
+
 	return 0;
 }

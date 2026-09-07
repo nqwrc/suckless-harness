@@ -53,5 +53,11 @@ main(int argc, char *argv[])
 	free(s);
 
 	printf("ok\n");
+
+	if (fflush(stdout) == EOF || ferror(stdout)) {
+		perror("stdout");
+		exit(1);
+	}
+
 	return 0;
 }
