@@ -208,6 +208,24 @@ esac
 out=$(./build/t_util die_no_colon 2>&1 || true)
 [ "$out" = "test" ] || bad "die without colon: got '$out'"
 
+out=$(./build/t_util fail_emalloc 2>&1 || true)
+case $out in
+"malloc: "*) : ;;
+*) bad "emalloc OOM handling: got '$out'" ;;
+esac
+
+out=$(./build/t_util fail_ecalloc 2>&1 || true)
+case $out in
+"calloc: "*) : ;;
+*) bad "ecalloc OOM handling: got '$out'" ;;
+esac
+
+out=$(./build/t_util fail_erealloc 2>&1 || true)
+case $out in
+"realloc: "*) : ;;
+*) bad "erealloc OOM handling: got '$out'" ;;
+esac
+
 printf '  ok (allocations, strdup, die)\n'
 
 note "Makefile + config.mk (SKILL.md section 4.1)"

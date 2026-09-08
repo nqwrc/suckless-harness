@@ -16,6 +16,18 @@ main(int argc, char *argv[])
 	if (argc > 1 && strcmp(argv[1], "die_no_colon") == 0) {
 		die("test");
 	}
+	if (argc > 1 && strcmp(argv[1], "fail_emalloc") == 0) {
+		volatile size_t huge = (size_t)-1;
+		emalloc(huge);
+	}
+	if (argc > 1 && strcmp(argv[1], "fail_ecalloc") == 0) {
+		volatile size_t huge = (size_t)-1;
+		ecalloc(huge, huge);
+	}
+	if (argc > 1 && strcmp(argv[1], "fail_erealloc") == 0) {
+		volatile size_t huge = (size_t)-1;
+		erealloc(NULL, huge);
+	}
 
 	/* emalloc */
 	p = emalloc(10);
