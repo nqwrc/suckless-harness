@@ -150,7 +150,7 @@ parseline(char *line, int len)
 ```
 
 - **Line 1:** Return type, storage class (`static`), qualifiers (`const`, `inline`)
-- **Line 2:** Function name at column 0, followed by parameter list
+- **Line 2:** Function name at column 0, followed by parameter list. Parameters must be flat; do not group related parameters into "options objects" or structs.
 - **Line 3:** Opening brace `{` alone
 
 ### 2.5 Variable Declarations
@@ -956,6 +956,7 @@ just being difficult.
 - ❌ Abstract base classes / interfaces
 - ❌ Multiple levels of indirection (pointer-to-pointer-to-pointer)
 - ❌ Built-in pagination or virtual scrolling for TUI/CLI (pipe everything to `less` or `more`)
+- ❌ Options objects or parameter grouping structs (keep function signatures flat and use boolean flags directly)
 - ✅ **Structs + function pointers + linked lists + bitmasks.**
 - ✅ **Direct procedural code with clear control flow.**
 
