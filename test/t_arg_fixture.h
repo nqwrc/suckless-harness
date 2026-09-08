@@ -47,7 +47,6 @@ run_with_allocator(char *(*alloc)(const char *))
 
 	run(4, av);
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
 		free(av[i]);
-	}
 }
