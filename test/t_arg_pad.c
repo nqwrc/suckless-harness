@@ -6,6 +6,32 @@
 
 char *argv0;
 
+static void usage(void);
+static char *pad_(const char *s);
+static void run(int argc, char *argv[]);
+
+int
+main(void)
+{
+	char *av[5];
+	int i;
+
+	av[0] = pad_("prog");
+	av[1] = pad_("-f");
+	av[2] = pad_("Y");
+	av[3] = pad_("z");
+	av[4] = NULL;
+
+	printf("expected: file=Y rest=1 : z\n");
+	printf("actual:   ");
+	run(4, av);
+
+	for (i = 0; i < 4; i++) {
+		free(av[i]);
+	}
+	return 0;
+}
+
 static void
 usage(void)
 {
@@ -43,24 +69,3 @@ run(int argc, char *argv[])
 	printf("\n");
 }
 
-int
-main(void)
-{
-	char *av[5];
-	int i;
-
-	av[0] = pad_("prog");
-	av[1] = pad_("-f");
-	av[2] = pad_("Y");
-	av[3] = pad_("z");
-	av[4] = NULL;
-
-	printf("expected: file=Y rest=1 : z\n");
-	printf("actual:   ");
-	run(4, av);
-
-	for (i = 0; i < 4; i++) {
-		free(av[i]);
-	}
-	return 0;
-}
