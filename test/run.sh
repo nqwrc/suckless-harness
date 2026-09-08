@@ -43,14 +43,14 @@ variant_inc() {
 
 sh "$here/ws_test.sh" || fail=1
 
-note "extracting sources from SKILL.md"
+note "extract.awk: parsing SKILL.md should output all required source files"
 (cd build && awk -f ../extract.awk ../../SKILL.md)
 
 for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h config.mk Makefile; do
 	[ -f "build/$f" ] || bad "SKILL.md produced no $f"
 done
 
-note "CRLF line endings (Windows clones)"
+note "extract.awk: parsing CRLF SKILL.md should match LF SKILL.md outputs exactly"
 mkdir -p build/crlf
 awk '{printf "%s\r\n", $0}' ../SKILL.md > build/SKILL-crlf.md
 (cd build/crlf && awk -f ../../extract.awk ../SKILL-crlf.md >/dev/null)
@@ -61,7 +61,7 @@ for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h config.mk Makefile; d
 done
 printf '  ok (extract.awk handles \\r)\n'
 
-note "worked example (SKILL.md section 11)"
+note "lc (worked example): reading files and stdin should output correct line counts and exit codes"
 $CC $WARN $FEAT -DVERSION='"test"' -o build/lc build/lc.c build/util.c
 out=$(printf 'a\nb\nc\n' | ./build/lc)
 [ "$out" = "3 <stdin>" ] || bad "lc stdin: got '$out', want '3 <stdin>'"
@@ -143,7 +143,7 @@ else
 	esac
 fi
 
-note "arg.h option matrix (SKILL.md section 3.4)"
+note "arg.h: parsing argument matrix should correctly identify flags and positional operands"
 $CC $WARN -I build -o build/t_arg t_arg.c
 for a in "-vfX" "-f Y z" "-v" "-- -x" "-f FILE t1 t2" "-vf Y" "a b" "-"; do
 	printf '  %-16s -> %s\n' "$a" "$(./build/t_arg $a)"
@@ -162,7 +162,7 @@ expect "-- -x"         "v=0 file=(null) rest=1 -x"
 expect "-"             "v=0 file=(null) rest=1 -"
 expect "a b"           "v=0 file=(null) rest=2 a b"
 
-note "operand loss check: shipped vs upstream vs broken"
+note "arg.h: parsing padded argv strings should retain positional operands (shipped vs broken)"
 # t_arg_pad.c allocates each argv string with calloc, so the byte after the
 # terminator is zero -- the case a normal contiguous stack hides.
 for v in shipped upstream broken; do
@@ -180,7 +180,7 @@ for v in shipped upstream broken; do
 	esac
 done
 
-note "AddressSanitizer: out-of-bounds read on a heap argv"
+note "arg.h: parsing heap argv strings should not trigger ASan out-of-bounds read"
 if printf 'int main(void){return 0;}\n' | \
    $CC -fsanitize=address -x c -o build/asanprobe - 2>/dev/null && \
    ./build/asanprobe >/dev/null 2>&1; then
@@ -202,7 +202,7 @@ else
 	printf '  skipped (no working -fsanitize=address)\n'
 fi
 
-note "performance benchmark (count_lines)"
+note "count_lines(): processing a large file should output execution time and memory metrics"
 $CC $WARN $FEAT -I build -o build/t_perf t_perf.c build/util.c
 out=$(./build/t_perf | grep -E "lines:|time:|memory:")
 if [ -z "$out" ]; then
@@ -211,11 +211,11 @@ else
 	printf '  ok (benchmark executed)\n'
 fi
 
-note "drw.c syntax check (SKILL.md section 3.6)"
+note "drw.c: compiling with stub X11 headers should pass syntax check without a real X server"
 $CC $WARN -I x11stub -I build -c build/drw.c -o build/drw.o
 printf '  ok (stub X11/Xft headers; not linked, needs a real X server)\n'
 
-note "util.c unit tests"
+note "util.c: memory allocation and die() wrappers under various inputs should succeed or exit appropriately"
 $CC $WARN $FEAT -I build -o build/t_util t_util.c build/util.c
 out=$(./build/t_util)
 [ "$out" = "ok" ] || bad "util.c tests failed: got '$out'"
@@ -249,7 +249,7 @@ esac
 
 printf '  ok (allocations, strdup, die)\n'
 
-note "Makefile + config.mk (SKILL.md section 4.1)"
+note "Makefile: executing build, install, and dist targets should produce correct binaries and tarballs"
 # Only GNU make is exercised. `include config.mk` is also BSD make syntax, but
 # no bmake is available here to prove it, so a non-GNU make is skipped rather
 # than guessed at. Every target is run for real: all, install, uninstall, dist
