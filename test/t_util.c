@@ -24,6 +24,15 @@ main(int argc, char *argv[])
 		fprintf(stderr, "emalloc: failed to write memory\n");
 		goto err_p;
 	}
+	free(p);
+
+	/* emalloc 0 */
+	p = emalloc(0);
+	if (p)
+		free(p);
+
+	p = emalloc(10);
+	memset(p, 'A', 10);
 
 	/* erealloc */
 	p = erealloc(p, 20);
@@ -46,10 +55,28 @@ main(int argc, char *argv[])
 	free(q);
 	q = NULL;
 
+	/* ecalloc 0 */
+	q = ecalloc(0, 0);
+	if (q) free(q);
+
+	q = ecalloc(0, 5);
+	if (q) free(q);
+
+	q = ecalloc(5, 0);
+	if (q) free(q);
+
 	/* estrdup */
 	s = estrdup("test string");
 	if (strcmp(s, "test string") != 0) {
 		fprintf(stderr, "estrdup: failed to copy string\n");
+		goto err_s;
+	}
+	free(s);
+
+	/* estrdup empty */
+	s = estrdup("");
+	if (strcmp(s, "") != 0) {
+		fprintf(stderr, "estrdup: failed to copy empty string\n");
 		goto err_s;
 	}
 	free(s);
