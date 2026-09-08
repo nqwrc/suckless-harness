@@ -51,6 +51,7 @@ int
 main(void)
 {
 	char *av[5];
+	int i;
 
 	av[0] = pad_("prog");
 	av[1] = pad_("-f");
@@ -62,6 +63,9 @@ main(void)
 	printf("actual:   ");
 	run(4, av);
 
+	for (i = 0; i < 4; i++) {
+		free(av[i]);
+	}
 	if (fflush(stdout) == EOF || ferror(stdout)) {
 		perror("stdout");
 		exit(1);
