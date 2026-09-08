@@ -233,6 +233,7 @@ main source file:
 
 ```c
 /* config.def.h */
+/* See LICENSE file for copyright and license details. */
 static const char *fonts[]    = { "monospace:size=10" };
 static const char dmenufont[] = "monospace:size=10";
 
@@ -262,6 +263,7 @@ Provide exactly these utility functions in every project:
 
 ```c
 /* util.c */
+/* See LICENSE file for copyright and license details. */
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1103,7 +1105,7 @@ count_lines(FILE *fp, const char *fname)
 		for (p = buf; (p = memchr(p, '\n', len - (p - buf))); p++)
 			n++;
 	if (ferror(fp))
-		die("read %s:", fname);
+		die("fread %s:", fname);
 
 	return n;
 }

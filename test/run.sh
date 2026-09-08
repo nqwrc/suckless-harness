@@ -127,7 +127,7 @@ if err=$(./build/lc build/dir 2>&1); then
 else
 	printf '  read dir   -> %s (exit %d)\n' "$err" "$?"
 	case $err in
-	"read build/dir: "*) : ;;
+	"fread build/dir: "*) : ;;
 	*) bad "die() read: got '$err'" ;;
 	esac
 fi
