@@ -1,13 +1,38 @@
+# Repository specific
 test/build/
+config.h
+
+# Build artifacts
 *.o
 *.a
 *.so
 *.exe
 *.pdb
 *.ilk
-config.h
+*.dll
+*.dylib
+*.out
+*.app
+*.obj
+*.lib
+
+# IDE and Editor files
 .vscode/
 .idea/
 compile_commands.json
+*.swp
+*~
+*.bak
+
+# OS files
 .DS_Store
-NOTES-review-log.it.md
+Thumbs.db
+
+# Dependency directories
+node_modules/
+venv/
+.venv/
+
+# Environment files
+.env
+.env.*
