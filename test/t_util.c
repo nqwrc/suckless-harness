@@ -67,6 +67,10 @@ main(int argc, char *argv[])
 	free(s);
 
 	printf("ok\n");
+
+	if (fflush(stdout) == EOF || ferror(stdout))
+		die("stdout:");
+
 	return 0;
 
 err_s:
