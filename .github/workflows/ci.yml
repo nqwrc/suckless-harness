@@ -1,0 +1,15 @@
+# Drop in as .github/workflows/ci.yml on nqwrc/suckless-harness.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test suite
+        run: ASAN_OPTIONS=detect_leaks=0 sh test/run.sh

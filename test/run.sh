@@ -35,6 +35,8 @@ fail=0
 note() { printf '\n== %s ==\n' "$1"; }
 bad()  { printf 'FAIL: %s\n' "$1"; fail=1; }
 
+sh "$here/ws_test.sh" || fail=1
+
 set_inc() {
 	case $1 in
 	shipped)  inc="build" ;;
@@ -50,11 +52,32 @@ for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h config.mk Makefile; d
 	[ -f "build/$f" ] || bad "SKILL.md produced no $f"
 done
 
+note "CRLF line endings (Windows clones)"
+mkdir -p build/crlf
+awk '{printf "%s\r\n", $0}' ../SKILL.md > build/SKILL-crlf.md
+(cd build/crlf && awk -f ../../extract.awk ../SKILL-crlf.md >/dev/null)
+for f in arg.h util.h util.c lc.c drw.h drw.c config.def.h config.mk Makefile; do
+	if ! cmp -s "build/$f" "build/crlf/$f"; then
+		bad "$f extracted from CRLF SKILL.md does not match"
+	fi
+done
+printf '  ok (extract.awk handles \\r)\n'
+
 note "worked example (SKILL.md section 11)"
 $CC $WARN $FEAT -DVERSION='"test"' -o build/lc build/lc.c build/util.c
 out=$(printf 'a\nb\nc\n' | ./build/lc)
 [ "$out" = "3 <stdin>" ] || bad "lc stdin: got '$out', want '3 <stdin>'"
 printf '  stdin      -> %s\n' "$out"
+
+printf 'one\n' > build/f1.txt
+printf 'two\nthree\n' > build/f2.txt
+out=$(./build/lc -c build/f1.txt build/f2.txt)
+expected=$(printf '1,build/f1.txt\n2,build/f2.txt')
+if [ "$out" != "$expected" ]; then
+	bad "lc files+csv: got '$out', want '$expected'"
+else
+	printf '  files+csv  -> ok\n'
+fi
 
 # die() colon trick: message, then strerror, then exit 1
 if err=$(./build/lc no/such/file 2>&1); then
@@ -67,16 +90,59 @@ else
 	esac
 fi
 
+if err=$(./build/lc -z 2>&1); then
+	bad "lc should exit nonzero on invalid flag"
+else
+	printf '  invalid    -> %s (exit %d)\n' "$err" "$?"
+	case $err in
+	"usage: "*) : ;;
+	*) bad "die() usage: got '$err'" ;;
+	esac
+fi
+
+mkdir -p build/dir
+if err=$(./build/lc build/dir 2>&1); then
+	bad "lc should exit nonzero on directory read"
+else
+	printf '  read dir   -> %s (exit %d)\n' "$err" "$?"
+	case $err in
+	"read build/dir: "*) : ;;
+	*) bad "die() read: got '$err'" ;;
+	esac
+fi
+
+touch build/noperm
+chmod 000 build/noperm
+if err=$(./build/lc build/noperm 2>&1); then
+	bad "lc should exit nonzero on unreadable file"
+else
+	printf '  no perm    -> %s (exit %d)\n' "$err" "$?"
+	case $err in
+	"fopen build/noperm: "*) : ;;
+	*) bad "die() noperm: got '$err'" ;;
+	esac
+fi
+
+if err=$(sh -c './build/lc < /dev/null 2>&1 > /dev/full'); then
+	bad "lc should exit nonzero on stdout write failure"
+else
+	printf '  stdout err -> %s (exit %d)\n' "$err" "$?"
+	case $err in
+	"stdout: "*) : ;;
+	*) bad "die() stdout: got '$err'" ;;
+	esac
+fi
+
 note "arg.h option matrix (SKILL.md section 3.4)"
-$CC $WARN -I build -o build/t t.c
+$CC $WARN -I build -o build/t_arg t_arg.c
 for a in "-vfX" "-f Y z" "-v" "-- -x" "-f FILE t1 t2" "-vf Y" "a b" "-"; do
-	printf '  %-16s -> %s\n' "$a" "$(./build/t $a)"
+	printf '  %-16s -> %s\n' "$a" "$(./build/t_arg $a)"
 done
 printf '  %-16s -> ' "-f (no operand)"
-./build/t -f 2>&1 || true
+./build/t_arg -f 2>&1 || true
 
 expect() {
-	got=$(./build/t $1)
+	got=$(./build/t_arg $1)
 	[ "$got" = "$2" ] || bad "'$1': got '$got', want '$2'"
 }
 expect "-vfX"          "v=1 file=X rest=0"
@@ -87,12 +153,12 @@ expect "-"             "v=0 file=(null) rest=1 -"
 expect "a b"           "v=0 file=(null) rest=2 a b"
 
 note "operand loss check: shipped vs upstream vs broken"
-# t3.c allocates each argv string with calloc, so the byte after the
+# t_arg_pad.c allocates each argv string with calloc, so the byte after the
 # terminator is zero -- the case a normal contiguous stack hides.
 for v in shipped upstream broken; do
 	set_inc "$v"
-	$CC $WARN -I "$inc" -o "build/t3-$v" t3.c
-	got=$(./build/t3-$v | sed -n 's/^actual: *//p')
+	$CC $WARN -I "$inc" -o "build/t_arg_pad-$v" t_arg_pad.c
+	got=$(./build/t_arg_pad-$v | sed -n 's/^actual: *//p')
 	printf '  %-9s -> %s\n' "$v" "$got"
 	case $v in
 	broken)
@@ -110,8 +176,8 @@ if printf 'int main(void){return 0;}\n' | \
    ./build/asanprobe >/dev/null 2>&1; then
 	for v in shipped upstream broken; do
 		set_inc "$v"
-		$CC $WARN -I "$inc" -fsanitize=address -g -o "build/t2-$v" t2.c
-		if ./build/t2-$v >/dev/null 2>"build/asan-$v.log"; then
+		$CC $WARN -I "$inc" -fsanitize=address -g -o "build/t_arg_asan-$v" t_arg_asan.c
+		if ./build/t_arg_asan-$v >/dev/null 2>"build/asan-$v.log"; then
 			printf '  %-9s -> clean\n' "$v"
 			[ "$v" = shipped ] || \
 				printf '             (expected an overflow here)\n'
@@ -134,7 +200,17 @@ note "util.c unit tests"
 $CC $WARN $FEAT -I build -o build/t_util t_util.c build/util.c
 out=$(./build/t_util)
 [ "$out" = "ok" ] || bad "util.c tests failed: got '$out'"
-printf '  ok (allocations and strdup)\n'
+
+out=$(./build/t_util die 2>&1 || true)
+case $out in
+"test: "*) : ;;
+*) bad "die with colon: got '$out'" ;;
+esac
+
+out=$(./build/t_util die_no_colon 2>&1 || true)
+[ "$out" = "test" ] || bad "die without colon: got '$out'"
+
+printf '  ok (allocations, strdup, die)\n'
 
 note "Makefile + config.mk (SKILL.md section 4.1)"
 # Only GNU make is exercised. `include config.mk` is also BSD make syntax, but

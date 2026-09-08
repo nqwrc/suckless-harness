@@ -331,6 +331,11 @@ estrdup(const char *s)
 `strerror(errno)` via `perror(NULL)`. So `die("open:")` prints
 `open: No such file or directory`.
 
+Error messages must be extremely terse, usually lowercase, and name only the
+failing function or syscall (e.g., `die("malloc:");`). Reject requests to add
+verbose context, capitalization, or user-friendly exception messages as they
+are considered bloat.
+
 The `fmt[0] &&` guard is **required**: without it, an empty format string makes
 `fmt[strlen(fmt) - 1]` read `fmt[-1]`, which is undefined behaviour.
 
@@ -696,7 +701,7 @@ PREFIX = /usr/local
 MANPREFIX = $(PREFIX)/share/man
 
 CPPFLAGS = -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"$(VERSION)\"
-CFLAGS   = -std=c99 -pedantic -Wall -Os
+CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Os
 LDFLAGS  =
 LIBS     =
 
@@ -942,6 +947,7 @@ just being difficult.
 
 ### 7.5 Patterns & Anti-Patterns
 
+- ❌ Verbose error messages, custom error codes, or user-friendly exception handling (use terse `die()` and exit `1`)
 - ❌ Object-Oriented Programming (class hierarchies, inheritance, polymorphism)
 - ❌ Design Patterns (Factory, Singleton, Observer — all add abstraction layers)
 - ❌ Plugin architectures (dlopen/dlsym dynamic loading for features)
@@ -1022,7 +1028,7 @@ Before presenting ANY code to the user, verify against this checklist:
 - [ ] Tabs for indentation, spaces for alignment?
 - [ ] All file-local functions declared `static`?
 - [ ] Allocation wrappers used (`emalloc`, `ecalloc`, `erealloc`, `estrdup`)? No scattered NULL checks?
-- [ ] Error handling via `die()` with colon trick, including the `fmt[0]` guard?
+- [ ] Error handling via `die()` with colon trick, including the `fmt[0]` guard? Are messages terse and lowercase?
 - [ ] `arg.h` macros reproduced verbatim, with every subscript intact?
 - [ ] `ARGEND` branches on `argused_` alone — no re-read of `argv[0][i_ + 1]`?
 - [ ] No runtime config parser? Using `config.h`?
@@ -1085,13 +1091,15 @@ usage(void)
 static void
 lc(FILE *fp, const char *fname, int csv)
 {
-	int c;
+	char buf[BUFSIZ];
+	size_t len, i;
 	unsigned long n;
 
 	n = 0;
-	while ((c = fgetc(fp)) != EOF)
-		if (c == '\n')
-			n++;
+	while ((len = fread(buf, 1, sizeof(buf), fp)) > 0)
+		for (i = 0; i < len; i++)
+			if (buf[i] == '\n')
+				n++;
 	if (ferror(fp))
 		die("read %s:", fname);
 
@@ -1132,6 +1140,42 @@ main(int argc, char *argv[])
 
 	return 0;
 }
+```
+
+```roff
+.TH LC 1 "January 2026" "lc VERSION"
+.SH NAME
+lc \- count lines in files or standard input
+
+.SH SYNOPSIS
+.B lc
+[\fB\-c\fR] [\fIfile ...\fR]
+
+.SH DESCRIPTION
+.B lc
+reads each file (or standard input if no file is given), counts the number of newline characters, and prints the result to standard output.
+
+.SH OPTIONS
+.TP
+.B \-c
+Output in CSV format: \fIcount\fR,\fIfilename\fR instead of \fIcount\fR \fIfilename\fR.
+
+.SH ENVIRONMENT
+None.
+
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+Failure (e.g., error reading file).
+
+.SH BUGS
+None known. Report to <email@example.com>.
+
+.SH AUTHORS
+Author Name <email@example.com>
 ```
 
 Note: every rule is followed. Variables at top. `/* */` comments. Multi-line
