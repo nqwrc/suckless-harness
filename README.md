@@ -101,6 +101,7 @@ test/
 ├── run.sh            all checks
 ├── extract.awk       pulls the C sources back out of SKILL.md
 ├── t_arg.c           option matrix
+├── t_arg_fixture.h   shared setup for arg.h tests
 ├── t_arg_asan.c      heap-allocated argv, for AddressSanitizer
 ├── t_arg_pad.c       calloc'd argv, zero slack after the terminator
 ├── t_util.c          util.c unit tests
