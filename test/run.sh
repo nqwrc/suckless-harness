@@ -38,9 +38,9 @@ FEAT="$FEAT -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS"
 rm -rf build
 mkdir build
 
-fail=0
-note() { printf '\n== %s ==\n' "$1"; }
-bad()  { printf 'FAIL: %s\n' "$1"; fail=1; }
+. "$here/common.sh"
+
+sh "$here/ws_test.sh" || fail=1
 
 note "extracting sources from SKILL.md: test awk extraction script, expecting isolated C files in build/"
 (cd build && awk -f ../extract.awk ../../SKILL.md)
@@ -55,6 +55,16 @@ out=$(printf 'a\nb\nc\n' | ./build/lc)
 [ "$out" = "3 <stdin>" ] || bad "lc stdin: got '$out', want '3 <stdin>'"
 printf '  stdin      -> %s\n' "$out"
 
+printf 'one\n' > build/f1.txt
+printf 'two\nthree\n' > build/f2.txt
+out=$(./build/lc -c build/f1.txt build/f2.txt)
+expected=$(printf '1,build/f1.txt\n2,build/f2.txt')
+if [ "$out" != "$expected" ]; then
+	bad "lc files+csv: got '$out', want '$expected'"
+else
+	printf '  files+csv  -> ok\n'
+fi
+
 # die() colon trick: message, then strerror, then exit 1
 if err=$(./build/lc no/such/file 2>&1); then
 	bad "lc should exit nonzero on a missing file"
@@ -67,15 +77,15 @@ else
 fi
 
 note "arg.h option matrix (SKILL.md section 3.4): test parsing of flag and operand combinations, expecting exact positional argument extraction"
-$CC $WARN -I build -o build/t t.c
+$CC $WARN -I build -o build/t_arg t_arg.c
 for a in "-vfX" "-f Y z" "-v" "-- -x" "-f FILE t1 t2" "-vf Y" "a b" "-"; do
-	printf '  %-16s -> %s\n' "$a" "$(./build/t $a)"
+	printf '  %-16s -> %s\n' "$a" "$(./build/t_arg $a)"
 done
 printf '  %-16s -> ' "-f (no operand)"
-./build/t -f 2>&1 || true
+./build/t_arg -f 2>&1 || true
 
 expect() {
-	got=$(./build/t $1)
+	got=$(./build/t_arg $1)
 	[ "$got" = "$2" ] || bad "'$1': got '$got', want '$2'"
 }
 expect "-vfX"          "v=1 file=X rest=0"
@@ -86,7 +96,7 @@ expect "-"             "v=0 file=(null) rest=1 -"
 expect "a b"           "v=0 file=(null) rest=2 a b"
 
 note "operand loss check: test arg.h variants with calloc'd argv, expecting no dropped positional arguments in the shipped variant"
-# t3.c allocates each argv string with calloc, so the byte after the
+# t_arg_pad.c allocates each argv string with calloc, so the byte after the
 # terminator is zero -- the case a normal contiguous stack hides.
 for v in shipped upstream broken; do
 	case $v in
@@ -94,8 +104,8 @@ for v in shipped upstream broken; do
 	upstream) inc="upstream" ;;
 	broken)   inc="broken" ;;
 	esac
-	$CC $WARN -I "$inc" -o "build/t3-$v" t3.c
-	got=$(./build/t3-$v | sed -n 's/^actual: *//p')
+	$CC $WARN -I "$inc" -o "build/t_arg_pad-$v" t_arg_pad.c
+	got=$(./build/t_arg_pad-$v | sed -n 's/^actual: *//p')
 	printf '  %-9s -> %s\n' "$v" "$got"
 	case $v in
 	broken)
@@ -117,8 +127,8 @@ if printf 'int main(void){return 0;}\n' | \
 		upstream) inc="upstream" ;;
 		broken)   inc="broken" ;;
 		esac
-		$CC $WARN -I "$inc" -fsanitize=address -g -o "build/t2-$v" t2.c
-		if ./build/t2-$v >/dev/null 2>"build/asan-$v.log"; then
+		$CC $WARN -I "$inc" -fsanitize=address -g -o "build/t_arg_asan-$v" t_arg_asan.c
+		if ./build/t_arg_asan-$v >/dev/null 2>"build/asan-$v.log"; then
 			printf '  %-9s -> clean\n' "$v"
 			[ "$v" = shipped ] || \
 				printf '             (expected an overflow here)\n'
@@ -141,7 +151,17 @@ note "util.c unit tests: test allocator wrappers under normal conditions, expect
 $CC $WARN $FEAT -I build -o build/t_util t_util.c build/util.c
 out=$(./build/t_util)
 [ "$out" = "ok" ] || bad "util.c tests failed: got '$out'"
-printf '  ok (allocations and strdup)\n'
+
+out=$(./build/t_util die 2>&1 || true)
+case $out in
+"test: "*) : ;;
+*) bad "die with colon: got '$out'" ;;
+esac
+
+out=$(./build/t_util die_no_colon 2>&1 || true)
+[ "$out" = "test" ] || bad "die without colon: got '$out'"
+
+printf '  ok (allocations, strdup, die)\n'
 
 note "Makefile + config.mk (SKILL.md section 4.1): test all, install, uninstall, and dist targets using GNU make, expecting functional build, installation, and packaging"
 # Only GNU make is exercised. `include config.mk` is also BSD make syntax, but
