@@ -13,3 +13,6 @@ Suckless-philosophy C programs, shell scripts and the SKILL.md teaching document
 - suckless style: C99, hand-written Makefile, `die()`/`ecalloc()`, `config.h`, no bloat.
 - Man pages, not README paragraphs, for user docs.
 - Do not add dependencies or build systems. Do not reformat unrelated code.
+
+## Never touch (auto-merge policy)
+PRs are merged by a script. It merges only PRs with at most 15 files and 800 changed lines that do not touch `.github/`, `.env*`, `Dockerfile` or any lockfile. A PR that touches them is not reviewed and is closed after 72h. Do not edit them; if a task needs it, do the rest and say so in the PR description. Never rebase or force-push an existing branch.
