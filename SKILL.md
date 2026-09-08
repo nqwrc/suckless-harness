@@ -549,6 +549,7 @@ typedef struct Fnt {
 } Fnt;
 
 enum { ColFg, ColBg, ColBorder };
+enum { SchemeNorm, SchemeSel };
 
 typedef XftColor Clr;
 
