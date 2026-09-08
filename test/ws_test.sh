@@ -1,6 +1,6 @@
 #!/bin/sh
 . "$(dirname "$0")/common.sh"
-note "whitespace and CRLF check"
+note "Repository files: scanning with grep should find zero trailing whitespace or CRLF endings"
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 for f in $(cd "$root" && git ls-files); do
