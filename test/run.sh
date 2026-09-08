@@ -30,6 +30,8 @@ FEAT="$FEAT -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS"
 
 rm -rf build
 mkdir build
+trap 'rm -f build/f1.txt build/f2.txt build/noperm; rm -rf build/dir build/maketest build/destdir build/crlf' EXIT
+trap 'rm -f build/f1.txt build/f2.txt build/noperm; rm -rf build/dir build/maketest build/destdir build/crlf; exit 1' HUP INT TERM
 
 . "$here/common.sh"
 
