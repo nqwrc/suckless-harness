@@ -190,9 +190,13 @@ else
 	printf '  skipped (no working -fsanitize=address)\n'
 fi
 
-note "drw.c syntax check (SKILL.md section 3.6)"
+note "drw.c unit tests (SKILL.md section 3.6)"
 $CC $WARN -I x11stub -I build -c build/drw.c -o build/drw.o
-printf '  ok (stub X11/Xft headers; not linked, needs a real X server)\n'
+$CC $WARN -I x11stub -I build -c x11stub/xlib_mock.c -o build/xlib_mock.o
+$CC $WARN $FEAT -I build -I x11stub -o build/t_drw t_drw.c build/drw.o build/xlib_mock.o build/util.c
+out=$(./build/t_drw | tail -1)
+[ "$out" = "ok" ] || bad "drw.c tests failed: got '$out'"
+printf '  ok (compiled with stub X11/Xft headers and mock objects)\n'
 
 note "util.c unit tests"
 $CC $WARN $FEAT -I build -o build/t_util t_util.c build/util.c
