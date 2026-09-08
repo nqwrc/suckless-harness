@@ -33,6 +33,14 @@ mkdir build
 
 . "$here/common.sh"
 
+variant_inc() {
+	case $1 in
+	shipped)  echo "build" ;;
+	upstream) echo "upstream" ;;
+	broken)   echo "broken" ;;
+	esac
+}
+
 sh "$here/ws_test.sh" || fail=1
 
 note "extracting sources from SKILL.md"
@@ -158,11 +166,7 @@ note "operand loss check: shipped vs upstream vs broken"
 # t_arg_pad.c allocates each argv string with calloc, so the byte after the
 # terminator is zero -- the case a normal contiguous stack hides.
 for v in shipped upstream broken; do
-	case $v in
-	shipped)  inc="build" ;;
-	upstream) inc="upstream" ;;
-	broken)   inc="broken" ;;
-	esac
+	inc=$(variant_inc "$v")
 	$CC $WARN -I "$inc" -o "build/t_arg_pad-$v" t_arg_pad.c
 	got=$(./build/t_arg_pad-$v | sed -n 's/^actual: *//p')
 	printf '  %-9s -> %s\n' "$v" "$got"
@@ -181,11 +185,7 @@ if printf 'int main(void){return 0;}\n' | \
    $CC -fsanitize=address -x c -o build/asanprobe - 2>/dev/null && \
    ./build/asanprobe >/dev/null 2>&1; then
 	for v in shipped upstream broken; do
-		case $v in
-		shipped)  inc="build" ;;
-		upstream) inc="upstream" ;;
-		broken)   inc="broken" ;;
-		esac
+		inc=$(variant_inc "$v")
 		$CC $WARN -I "$inc" -fsanitize=address -g -o "build/t_arg_asan-$v" t_arg_asan.c
 		if ./build/t_arg_asan-$v >/dev/null 2>"build/asan-$v.log"; then
 			printf '  %-9s -> clean\n' "$v"
