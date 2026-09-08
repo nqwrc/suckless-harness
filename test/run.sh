@@ -180,9 +180,9 @@ if printf 'int main(void){return 0;}\n' | \
 			[ "$v" = shipped ] || \
 				printf '             (expected an overflow here)\n'
 		else
-			printf '  %-9s -> %s\n' "$v" \
-				"$(sed -n 's/.*ERROR: AddressSanitizer: \([a-z-]*\).*/\1/p' \
-				   "build/asan-$v.log" | head -1)"
+			asan_err=$(sed -n 's/.*ERROR: AddressSanitizer: \([a-z-]*\).*/\1/p' \
+				"build/asan-$v.log" | head -1)
+			printf '  %-9s -> %s\n' "$v" "$asan_err"
 			[ "$v" = shipped ] && bad "shipped arg.h read out of bounds"
 		fi
 	done
@@ -284,8 +284,9 @@ if [ "$ok" = 1 ]; then
 	   [ -f "build/maketest/tool-$ver.tar.gz" ]; then
 		tar -tzf "build/maketest/tool-$ver.tar.gz" >build/dist.list 2>&1 || \
 			bad "make dist: tool-$ver.tar.gz is not readable"
+		member_count=$(wc -l <build/dist.list | tr -d ' ')
 		printf '  make dist      -> tool-%s.tar.gz, %s members\n' \
-			"$ver" "$(wc -l <build/dist.list | tr -d ' ')"
+			"$ver" "$member_count"
 		# section 4.1 warns that a tarball missing a header fails only on
 		# the downloader's machine, so check HDR really landed in it.
 		for f in LICENSE Makefile README config.def.h config.mk tool.1 \
