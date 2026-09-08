@@ -1089,8 +1089,8 @@ usage(void)
 	die("usage: %s [-c] [file ...]", argv0);
 }
 
-static void
-lc(FILE *fp, const char *fname, int csv)
+static unsigned long
+lc(FILE *fp, const char *fname)
 {
 	char buf[BUFSIZ];
 	char *p;
@@ -1104,16 +1104,14 @@ lc(FILE *fp, const char *fname, int csv)
 	if (ferror(fp))
 		die("read %s:", fname);
 
-	if (csv)
-		printf("%lu,%s\n", n, fname);
-	else
-		printf("%lu %s\n", n, fname);
+	return n;
 }
 
 int
 main(int argc, char *argv[])
 {
 	FILE *fp;
+	unsigned long n;
 	int csv = 0;
 	int i;
 
@@ -1126,12 +1124,14 @@ main(int argc, char *argv[])
 	} ARGEND;
 
 	if (!argc) {
-		lc(stdin, "<stdin>", csv);
+		n = lc(stdin, "<stdin>");
+		printf(csv ? "%lu,%s\n" : "%lu %s\n", n, "<stdin>");
 	} else {
 		for (i = 0; i < argc; i++) {
 			if (!(fp = fopen(argv[i], "r")))
 				die("fopen %s:", argv[i]);
-			lc(fp, argv[i], csv);
+			n = lc(fp, argv[i]);
+			printf(csv ? "%lu,%s\n" : "%lu %s\n", n, argv[i]);
 			fclose(fp);
 		}
 	}
