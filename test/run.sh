@@ -143,7 +143,7 @@ expect "-"             "v=0 file=(null) rest=1 -"
 expect "a b"           "v=0 file=(null) rest=2 a b"
 
 note "operand loss check: shipped vs upstream vs broken"
-# t_arg_pad.c allocates each argv string with calloc, so the byte after the
+# t_arg_alloc.c allocates each argv string with calloc, so the byte after the
 # terminator is zero -- the case a normal contiguous stack hides.
 for v in shipped upstream broken; do
 	case $v in
@@ -151,8 +151,8 @@ for v in shipped upstream broken; do
 	upstream) inc="upstream" ;;
 	broken)   inc="broken" ;;
 	esac
-	$CC $WARN -I "$inc" -o "build/t_arg_pad-$v" t_arg_pad.c
-	got=$(./build/t_arg_pad-$v | sed -n 's/^actual: *//p')
+	$CC $WARN -I "$inc" -o "build/t_arg_pad-$v" t_arg_alloc.c
+	got=$(./build/t_arg_pad-$v pad | sed -n 's/^actual: *//p')
 	printf '  %-9s -> %s\n' "$v" "$got"
 	case $v in
 	broken)
@@ -174,7 +174,7 @@ if printf 'int main(void){return 0;}\n' | \
 		upstream) inc="upstream" ;;
 		broken)   inc="broken" ;;
 		esac
-		$CC $WARN -I "$inc" -fsanitize=address -g -o "build/t_arg_asan-$v" t_arg_asan.c
+		$CC $WARN -I "$inc" -fsanitize=address -g -o "build/t_arg_asan-$v" t_arg_alloc.c
 		if ./build/t_arg_asan-$v >/dev/null 2>"build/asan-$v.log"; then
 			printf '  %-9s -> clean\n' "$v"
 			[ "$v" = shipped ] || \
