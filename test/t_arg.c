@@ -6,12 +6,7 @@
 
 char *argv0;
 
-static void
-usage(void)
-{
-	fprintf(stderr, "usage: %s [-v] [-f file]\n", argv0);
-	exit(1);
-}
+static void usage(void);
 
 int
 main(int argc, char *argv[])
@@ -36,4 +31,11 @@ main(int argc, char *argv[])
 		printf(" %s", argv[i]);
 	printf("\n");
 	return 0;
+}
+
+static void
+usage(void)
+{
+	fprintf(stderr, "usage: %s [-v] [-f file]\n", argv0);
+	exit(1);
 }

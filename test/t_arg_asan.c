@@ -6,6 +6,30 @@
 
 char *argv0;
 
+static void usage(void);
+static char *dup_(const char *s);
+static void run(int argc, char *argv[]);
+
+int
+main(void)
+{
+	char *av[5];
+	int i;
+
+	/* simulates:  prog -f Y z   with each string separately allocated */
+	av[0] = dup_("prog");
+	av[1] = dup_("-f");
+	av[2] = dup_("Y");
+	av[3] = dup_("z");
+	av[4] = NULL;
+
+	run(4, av);
+
+	for (i = 0; i < 4; i++) {
+		free(av[i]);
+	}
+	return 0;
+}
 static void
 usage(void)
 {
@@ -41,23 +65,3 @@ run(int argc, char *argv[])
 	printf("\n");
 }
 
-int
-main(void)
-{
-	char *av[5];
-	int i;
-
-	/* simulates:  prog -f Y z   with each string separately allocated */
-	av[0] = dup_("prog");
-	av[1] = dup_("-f");
-	av[2] = dup_("Y");
-	av[3] = dup_("z");
-	av[4] = NULL;
-
-	run(4, av);
-
-	for (i = 0; i < 4; i++) {
-		free(av[i]);
-	}
-	return 0;
-}
