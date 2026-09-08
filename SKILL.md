@@ -702,7 +702,7 @@ PREFIX = /usr/local
 MANPREFIX = $(PREFIX)/share/man
 
 CPPFLAGS = -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"$(VERSION)\"
-CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Os
+CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Wdeclaration-after-statement -Wshadow -Os
 LDFLAGS  =
 LIBS     =
 
