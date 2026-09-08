@@ -6,7 +6,8 @@
 
 char *argv0;
 
-static void usage(void);
+static void
+usage(void);
 
 int
 main(int argc, char *argv[])
