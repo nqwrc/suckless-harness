@@ -1,3 +1,4 @@
+/* See LICENSE file for copyright and license details. */
 #include "t_arg_fixture.h"
 
 static char *
