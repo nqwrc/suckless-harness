@@ -73,6 +73,15 @@ out=$(./build/lc < /dev/null)
 [ "$out" = "0 <stdin>" ] || bad "lc empty stdin: got '$out', want '0 <stdin>'"
 printf '  empty std  -> %s\n' "$out"
 
+out=$(printf "hello\nworld\n" | ./build/lc -)
+[ "$out" = "2 <stdin>" ] || bad "lc explicit stdin: got '$out', want '2 <stdin>'"
+printf '  explicit std -> %s\n' "$out"
+
+printf 'one\r\ntwo\r\n' > build/fcrlf.txt
+out=$(./build/lc build/fcrlf.txt)
+[ "$out" = "2 build/fcrlf.txt" ] || bad "lc crlf: got '$out'"
+printf '  crlf       -> %s\n' "$out"
+
 printf 'one\n' > build/f1.txt
 printf 'two\nthree\n' > build/f2.txt
 out=$(./build/lc build/f1.txt build/f2.txt)

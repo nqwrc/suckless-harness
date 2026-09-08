@@ -1093,7 +1093,7 @@ usage(void)
 static unsigned long
 count_lines(FILE *fp, const char *fname)
 {
-	char buf[BUFSIZ];
+	char buf[32768];
 	char *p;
 	size_t len;
 	unsigned long n;
@@ -1140,10 +1140,15 @@ main(int argc, char *argv[])
 		lc(stdin, "<stdin>", csv);
 	} else {
 		for (i = 0; i < argc; i++) {
-			if (!(fp = fopen(argv[i], "r")))
+			if (strcmp(argv[i], "-") == 0) {
+				argv[i] = "<stdin>";
+				fp = stdin;
+			} else if (!(fp = fopen(argv[i], "r"))) {
 				die("fopen %s:", argv[i]);
+			}
 			lc(fp, argv[i], csv);
-			fclose(fp);
+			if (fp != stdin)
+				fclose(fp);
 		}
 	}
 
