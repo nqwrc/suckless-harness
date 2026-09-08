@@ -1089,8 +1089,8 @@ usage(void)
 	die("usage: %s [-c] [file ...]", argv0);
 }
 
-static void
-lc(FILE *fp, const char *fname, int csv)
+static unsigned long
+count_lines(FILE *fp, const char *fname)
 {
 	char buf[BUFSIZ];
 	char *p;
@@ -1103,6 +1103,16 @@ lc(FILE *fp, const char *fname, int csv)
 			n++;
 	if (ferror(fp))
 		die("read %s:", fname);
+
+	return n;
+}
+
+static void
+lc(FILE *fp, const char *fname, int csv)
+{
+	unsigned long n;
+
+	n = count_lines(fp, fname);
 
 	if (csv)
 		printf("%lu,%s\n", n, fname);
