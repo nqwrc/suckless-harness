@@ -14,10 +14,12 @@ usage(void)
 }
 
 static char *
-dup_(const char *s)
+pad_(const char *s)
 {
-	char *p = malloc(strlen(s) + 1);
-	memcpy(p, s, strlen(s) + 1);
+	/* zero-filled slack after the NUL: what a hardened/zeroing
+	 * allocator or a differently-laid-out stack would give you */
+	char *p = calloc(1, 16);
+	memcpy(p, s, strlen(s));
 	return p;
 }
 
@@ -35,7 +37,7 @@ run(int argc, char *argv[])
 		usage();
 	} ARGEND;
 
-	printf("file=%s rest=%d", file ? file : "(null)", argc);
+	printf("file=%s rest=%d :", file ? file : "(null)", argc);
 	for (i = 0; i < argc; i++)
 		printf(" %s", argv[i]);
 	printf("\n");
@@ -45,16 +47,21 @@ int
 main(void)
 {
 	char *av[5];
+	int i;
 
-	/* simulates:  prog -f Y z   with each string separately allocated */
-	av[0] = dup_("prog");
-	av[1] = dup_("-f");
-	av[2] = dup_("Y");
-	av[3] = dup_("z");
+	av[0] = pad_("prog");
+	av[1] = pad_("-f");
+	av[2] = pad_("Y");
+	av[3] = pad_("z");
 	av[4] = NULL;
 
+	printf("expected: file=Y rest=1 : z\n");
+	printf("actual:   ");
 	run(4, av);
 
+	for (i = 0; i < 4; i++) {
+		free(av[i]);
+	}
 	if (fflush(stdout) == EOF || ferror(stdout)) {
 		fprintf(stderr, "stdout: error\n");
 		exit(1);
