@@ -1094,14 +1094,16 @@ static unsigned long
 count_lines(FILE *fp, const char *fname)
 {
 	char buf[BUFSIZ];
-	char *p;
+	char *p, *end;
 	size_t len;
 	unsigned long n;
 
 	n = 0;
-	while ((len = fread(buf, 1, sizeof(buf), fp)) > 0)
-		for (p = buf; (p = memchr(p, '\n', len - (p - buf))); p++)
+	while ((len = fread(buf, 1, sizeof(buf), fp)) > 0) {
+		end = buf + len;
+		for (p = buf; (p = memchr(p, '\n', end - p)); p++)
 			n++;
+	}
 	if (ferror(fp))
 		die("read %s:", fname);
 
