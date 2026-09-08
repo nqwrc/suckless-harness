@@ -1,0 +1,17 @@
+--- README.md
++++ README.md
+@@ -102,11 +102,9 @@
+ test/
+ ├── run.sh            all checks
+ ├── extract.awk       pulls the C sources back out of SKILL.md
+-<<<<<<< HEAD
+ ├── t_arg.c           option matrix
+ ├── t_arg_asan.c      heap-allocated argv, for AddressSanitizer
+ ├── t_arg_pad.c       calloc'd argv, zero slack after the terminator
+-=======
+-├── t.c               option matrix
+-├── t2.c              heap-allocated argv, for AddressSanitizer
+-├── t3.c              calloc'd argv, zero slack after the terminator
+->>>>>>> 88ebd92 (docs: fix broken documentation link in README directory tree)
+ ├── t_util.c          util.c unit tests
+ ├── upstream/arg.h    comparison baseline, transcribed from st
