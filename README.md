@@ -99,13 +99,15 @@ file. § 4.1 is a template, so the harness supplies the `LICENSE`, `README` and
 ```
 test/
 ├── run.sh            all checks
+├── common.sh         shared utility functions for tests
 ├── extract.awk       pulls the C sources back out of SKILL.md
 ├── t_arg.c           option matrix
 ├── t_arg_fixture.h   shared setup for arg.h tests
 ├── t_arg_asan.c      heap-allocated argv, for AddressSanitizer
 ├── t_arg_pad.c       calloc'd argv, zero slack after the terminator
+├── t_lc_perf.c       count_lines benchmark
 ├── t_util.c          util.c unit tests
-├── t_perf.c          count_lines benchmark
+├── t_ws.sh           whitespace and CRLF test
 ├── upstream/arg.h    comparison baseline, transcribed from st
 ├── broken/arg.h      the defective variant, kept to demonstrate the failure
 └── x11stub/          minimal X11/Xft headers for the drw.c syntax check

@@ -41,7 +41,7 @@ variant_inc() {
 	esac
 }
 
-sh "$here/ws_test.sh" || fail=1
+sh "$here/t_ws.sh" || fail=1
 
 note "extract.awk: parsing SKILL.md should output all required source files"
 (cd build && awk -f ../extract.awk ../../SKILL.md)
@@ -203,10 +203,10 @@ else
 fi
 
 note "count_lines(): processing a large file should output execution time and memory metrics"
-$CC $WARN $FEAT -I build -o build/t_perf t_perf.c build/util.c
-out=$(./build/t_perf | grep -E "lines:|time:|memory:")
+$CC $WARN $FEAT -I build -o build/t_lc_perf t_lc_perf.c build/util.c
+out=$(./build/t_lc_perf | grep -E "lines:|time:|memory:")
 if [ -z "$out" ]; then
-	bad "t_perf output is missing"
+	bad "t_lc_perf output is missing"
 else
 	printf '  ok (benchmark executed)\n'
 fi
