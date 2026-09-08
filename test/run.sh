@@ -23,7 +23,7 @@ for cmd in "$CC" awk; do
 	fi
 done
 
-WARN="-std=c99 -pedantic -Wall -Wextra -Wdeclaration-after-statement -Wshadow"
+WARN="-Werror -std=c99 -pedantic -Wall -Wextra -Wdeclaration-after-statement -Wshadow"
 FEAT="-D_POSIX_C_SOURCE=200809L"
 # Windows CRT calls fopen/strdup "deprecated"; ignored elsewhere.
 FEAT="$FEAT -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS"
@@ -178,7 +178,9 @@ note "arg.h: parsing padded argv strings should retain positional operands (ship
 # terminator is zero -- the case a normal contiguous stack hides.
 for v in shipped upstream broken; do
 	inc=$(variant_inc "$v")
-	$CC $WARN -I "$inc" -o "build/t_arg_pad-$v" t_arg_pad.c
+	EXTRA_WARN=""
+	[ "$v" = shipped ] || EXTRA_WARN="-Wno-declaration-after-statement"
+	$CC $WARN $EXTRA_WARN -I "$inc" -o "build/t_arg_pad-$v" t_arg_pad.c
 	got=$(./build/t_arg_pad-$v | sed -n 's/^actual: *//p')
 	printf '  %-9s -> %s\n' "$v" "$got"
 	case $v in
@@ -197,7 +199,9 @@ if printf 'int main(void){return 0;}\n' | \
    ./build/asanprobe >/dev/null 2>&1; then
 	for v in shipped upstream broken; do
 		inc=$(variant_inc "$v")
-		$CC $WARN -I "$inc" -fsanitize=address -g -o "build/t_arg_asan-$v" t_arg_asan.c
+		EXTRA_WARN=""
+		[ "$v" = shipped ] || EXTRA_WARN="-Wno-declaration-after-statement"
+		$CC $WARN $EXTRA_WARN -I "$inc" -fsanitize=address -g -o "build/t_arg_asan-$v" t_arg_asan.c
 		if ./build/t_arg_asan-$v >/dev/null 2>"build/asan-$v.log"; then
 			printf '  %-9s -> clean\n' "$v"
 			[ "$v" = shipped ] || \
