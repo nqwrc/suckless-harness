@@ -17,7 +17,6 @@ main(int argc, char *argv[])
 		die("test");
 	}
 
-
 	/* emalloc: test allocating 10 bytes and writing to the bounds. Expected: memory is allocated and writable. */
 	p = emalloc(10);
 	memset(p, 'A', 10);
