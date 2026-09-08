@@ -14,7 +14,7 @@ main(void)
 	FILE *fp;
 	unsigned long n;
 	clock_t start, end;
-	struct rusage r_start, r_end;
+	struct rusage r_end;
 	int i;
 	char *buf;
 	size_t len;
@@ -37,7 +37,6 @@ main(void)
 	if (!fp)
 		die("fmemopen:");
 
-	getrusage(RUSAGE_SELF, &r_start);
 	start = clock();
 	n = count_lines(fp, "tmpfile");
 	end = clock();

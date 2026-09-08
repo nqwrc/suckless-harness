@@ -483,7 +483,7 @@ character loop and lets `ARGBEGIN`'s own `argc--, argv++` step to the next one.
 
 This parser handles `-v`, `-fFILE`, `-f FILE`, clustered flags (`-vfFILE`,
 `-vf FILE`), `--` as an end-of-options marker, and a bare `-` left as an operand.
-Verified with `clang -std=c99 -pedantic -Wall -Wextra`, clean under
+Verified with `clang -std=c99 -pedantic -Wall -Wextra -Werror`, clean under
 AddressSanitizer.
 
 ### 3.5 Data Structures
@@ -702,7 +702,7 @@ PREFIX = /usr/local
 MANPREFIX = $(PREFIX)/share/man
 
 CPPFLAGS = -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"$(VERSION)\"
-CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Os
+CFLAGS   = -std=c99 -pedantic -Wall -Wextra -Werror -Os
 LDFLAGS  =
 LIBS     =
 
