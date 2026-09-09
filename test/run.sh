@@ -205,6 +205,15 @@ expect "-- -x"         "v=0 file=(null) rest=1 -x"
 expect "-"             "v=0 file=(null) rest=1 -"
 expect "a b"           "v=0 file=(null) rest=2 a b"
 
+# `expect` relies on word splitting, which cannot express an empty or
+# whitespace-only argument: those go through the binary directly.
+got=$(./build/t_arg "")
+[ "$got" = "v=0 file=(null) rest=1 " ] || bad "empty operand: got '$got'"
+got=$(./build/t_arg -f "")
+[ "$got" = "v=0 file= rest=0" ] || bad "empty -f value: got '$got'"
+got=$(./build/t_arg -f "  ")
+[ "$got" = "v=0 file=   rest=0" ] || bad "whitespace -f value: got '$got'"
+
 note "arg.h: parsing padded argv strings should retain positional operands (shipped vs broken)"
 # t_arg_pad.c allocates each argv string with calloc, so the byte after the
 # terminator is zero -- the case a normal contiguous stack hides.
