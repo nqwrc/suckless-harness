@@ -100,6 +100,38 @@ else
 	printf '  files+csv  -> ok\n'
 fi
 
+touch build/empty.txt
+out=$(./build/lc build/empty.txt)
+if [ "$out" != "0 build/empty.txt" ]; then
+	bad "lc empty file: got '$out', want '0 build/empty.txt'"
+else
+	printf '  empty file -> ok\n'
+fi
+
+printf 'a\0b\nc\0\n' > build/nulls.txt
+out=$(./build/lc build/nulls.txt)
+if [ "$out" != "2 build/nulls.txt" ]; then
+	bad "lc nulls: got '$out', want '2 build/nulls.txt'"
+else
+	printf '  nulls      -> ok\n'
+fi
+
+printf 'no trailing' > build/notrail.txt
+out=$(./build/lc build/notrail.txt)
+if [ "$out" != "0 build/notrail.txt" ]; then
+	bad "lc no trailing newline: got '$out', want '0 build/notrail.txt'"
+else
+	printf '  no trailing-> ok\n'
+fi
+
+printf 'こんにちは\n世界\n' > build/unicode.txt
+out=$(./build/lc build/unicode.txt)
+if [ "$out" != "2 build/unicode.txt" ]; then
+	bad "lc unicode: got '$out', want '2 build/unicode.txt'"
+else
+	printf '  unicode    -> ok\n'
+fi
+
 # die() colon trick: message, then strerror, then exit 1
 if err=$(./build/lc no/such/file 2>&1); then
 	bad "lc should exit nonzero on a missing file"
