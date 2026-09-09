@@ -105,7 +105,6 @@ test/
 ├── t_arg_asan.c      heap-allocated argv, for AddressSanitizer
 ├── t_arg_pad.c       calloc'd argv, zero slack after the terminator
 ├── t_util.c          util.c unit tests
-├── t_perf.c          count_lines benchmark
 ├── upstream/arg.h    comparison baseline, transcribed from st
 ├── broken/arg.h      the defective variant, kept to demonstrate the failure
 └── x11stub/          minimal X11/Xft headers for the drw.c syntax check
