@@ -5,6 +5,8 @@
 #include <time.h>
 #include <sys/resource.h>
 
+int lc_main(int argc, char *argv[]);
+
 #define main lc_main
 #include "lc.c"
 #undef main
