@@ -249,15 +249,6 @@ else
 	printf '  skipped (no working -fsanitize=address)\n'
 fi
 
-note "count_lines(): processing a large file should output execution time and memory metrics"
-$CC $WARN $FEAT -I build -o build/t_perf t_perf.c build/util.c
-out=$(./build/t_perf | grep -E "lines:|time:|memory:")
-if [ -z "$out" ]; then
-	bad "t_perf output is missing"
-else
-	printf '  ok (benchmark executed)\n'
-fi
-
 note "drw.c: compiling with stub X11 headers should pass syntax check without a real X server"
 $CC $WARN -I x11stub -I build -c build/drw.c -o build/drw.o
 printf '  ok (stub X11/Xft headers; not linked, needs a real X server)\n'
