@@ -343,6 +343,32 @@ if [ "$ok" = 1 ]; then
 		ok=0
 	fi
 
+	if [ "$ok" = 1 ]; then
+		mk clean >/dev/null 2>&1
+		if mk CFLAGS="-O2 -g" >build/make-cflags.log 2>&1 && [ -x build/maketest/tool ]; then
+			out2=$(printf 'a\nb\nc\n' | ./build/maketest/tool)
+			[ "$out2" = "3 <stdin>" ] || bad "make CFLAGS tool: got '$out2', want '3 <stdin>'"
+			printf '  make CFLAGS    -> ok\n'
+		else
+			bad "make failed to build tool with CFLAGS overridden"
+			sed 's/^/  /' build/make-cflags.log
+			ok=0
+		fi
+	fi
+
+	if [ "$ok" = 1 ]; then
+		mk clean >/dev/null 2>&1
+		if mk CFLAGS="-std=c99 -pedantic -O2 -g" >build/make-cflags-strict.log 2>&1 && [ -x build/maketest/tool ]; then
+			out2=$(printf 'a\nb\nc\n' | ./build/maketest/tool)
+			[ "$out2" = "3 <stdin>" ] || bad "make strict CFLAGS tool: got '$out2', want '3 <stdin>'"
+			printf '  make CFLAGS-S  -> ok\n'
+		else
+			bad "make failed to build tool with strict CFLAGS overridden"
+			sed 's/^/  /' build/make-cflags-strict.log
+			ok=0
+		fi
+	fi
+
 	if [ "$ok" = 1 ] && mk install DESTDIR="$dest" >build/make-install.log 2>&1; then
 		# print the action, then assert -- so a FAIL below is never
 		# contradicted by a success line printed after it
